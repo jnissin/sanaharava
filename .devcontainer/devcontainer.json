@@ -12,5 +12,6 @@
 	},
 
 	"forwardPorts": [3000],
-	"postCreateCommand": "npm install"
+	"postCreateCommand": "npm install",
+	"runArgs": ["--env-file", ".env"]
 }
