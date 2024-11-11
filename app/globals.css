@@ -31,7 +31,7 @@ body {
 }
 
 .game-container {
-  @apply w-full max-w-md;
+  @apply w-full max-w-lg;
 }
 
 .game-card {
@@ -39,20 +39,27 @@ body {
 }
 
 .game-grid-container {
-  @apply relative p-6;
+  @apply relative p-6 flex flex-col gap-6;
 }
 
 .game-grid {
-  @apply grid gap-1.5 grid-cols-5 mb-6;
+  @apply grid mb-6;
+  grid-template-columns: repeat(5, 50px);
+  gap: 8px; /* Gap between cells */
+  width: 282px; /* (50px * 5) + (8px * 4) for gaps */
+  height: 340px; /* (50px * 6) + (8px * 5) for gaps */
+  margin: 0 auto;
 }
 
 .game-cell {
-  @apply w-12 h-12 flex items-center justify-center 
+  @apply flex items-center justify-center 
     cursor-pointer text-lg font-medium rounded-lg 
     transition-all duration-200 transform hover:scale-105 
     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
-    background-color: rgb(31 41 55);
-    color: rgb(209 213 219);
+  width: 50px;
+  height: 50px;
+  background-color: rgb(31 41 55);
+  color: rgb(209 213 219);
 }
 
 .game-cell.found-word {
@@ -66,7 +73,8 @@ body {
 }
 
 .game-controls {
-  @apply space-y-4;
+  @apply space-y-4 mt-4; /* Add top margin to separate from grid */
+  width: 100%; /* Take full width of container */
 }
 
 .word-input {
@@ -149,4 +157,13 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.word-path-overlay {
+  z-index: 1;
+}
+
+.game-cell {
+  position: relative;
+  z-index: 2;
 }

@@ -158,13 +158,88 @@ const WordSnake = () => {
     checkGameCompletion(foundWords.filter(word => word !== wordToRemove));
   };
 
+  const renderWordPaths = () => {
+    // Match from .game-cell CSS
+    const cellWidth = 50;
+    const cellHeight = 50;
+    const gap = 8;
+    
+    const paths = Object.entries(wordPaths).map(([word, { path }]) => {
+      const points = path.map(([row, col]) => ({
+        x: (col * (cellWidth + gap)) + (cellWidth / 2),
+        y: (row * (cellHeight + gap)) + (cellHeight / 2)
+      }));
+
+      return (
+        <svg
+          key={word}
+          className="word-path-overlay"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none'
+          }}
+        >
+          <polyline
+            points={points.map(p => `${p.x},${p.y}`).join(' ')}
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.5)"
+            strokeWidth="3"
+          />
+        </svg>
+      );
+    });
+  
+    return paths;
+  };
+  
+  const renderCurrentPath = () => {
+    if (currentPath.length < 2) return null;
+  
+    // Match from .game-cell CSS
+    const cellWidth = 50;
+    const cellHeight = 50;
+    const gap = 8;
+    
+    const points = currentPath.map(([row, col]) => ({
+      x: (col * (cellWidth + gap)) + (cellWidth / 2),
+      y: (row * (cellHeight + gap)) + (cellHeight / 2)
+    }));  
+    
+    return (
+      <svg
+        className="word-path-overlay"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none'
+        }}
+      >
+        <polyline
+          points={points.map(p => `${p.x},${p.y}`).join(' ')}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.8)"
+          strokeWidth="3"
+        />
+      </svg>
+    );
+  };
+
   return (
     <div className="game-outer-container">
       <GameTitle />
       <div className="game-container">
         <div className="game-card">
           <div className="game-grid-container">
-              <div className="game-grid">
+            <div className="game-grid" style={{ position: 'relative' }}>
+                {renderWordPaths()}
+                {renderCurrentPath()}
                 {grid.map((row, rowIndex) => (
                   row.map((letter, colIndex) => (
                     <button
@@ -177,7 +252,7 @@ const WordSnake = () => {
                     </button>
                   ))
                 ))}
-              </div>
+            </div>
 
             <div className="game-controls">
               <div className="flex-col gap-2">
