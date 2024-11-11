@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
-import '../styles/WordSnake.css';
+//import '../styles/WordSnake.css';
 
 interface WordPath {
   path: number[][];
