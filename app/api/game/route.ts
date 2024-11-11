@@ -3,14 +3,14 @@ import { NextResponse } from 'next/server';
 // Game data stays on the server
 const GAME_DATA = {
   grid: [
-    ['L', 'U', 'M', 'I', 'D'],
-    ['A', 'Y', 'U', 'K', 'I'],
-    ['H', 'S', 'L', 'E', 'K'],
-    ['J', 'U', 'A', 'C', 'E'],
-    ['A', 'F', 'H', 'T', 'N'],
-    ['B', 'B', 'C', 'U', 'X']
+    ['I', 'T', 'T', 'G', 'F'],
+    ['Y', 'R', 'S', 'U', 'E'],
+    ['S', 'U', 'U', 'O', 'R'],
+    ['E', 'T', 'K', 'G', 'G'],
+    ['R', 'E', 'I', 'O', 'I'],
+    ['C', 'S', 'D', 'A', 'J']
   ],
-  validWords: ['YUSUF', 'DIKEC', 'LUMI']
+  validWords: ["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"]
 };
 
 // GET endpoint to fetch the grid
