@@ -51,11 +51,8 @@ body {
     cursor-pointer text-lg font-medium rounded-lg 
     transition-all duration-200 transform hover:scale-105 
     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
-}
-
-.game-cell {
-  background-color: rgb(31 41 55);
-  color: rgb(209 213 219);
+    background-color: rgb(31 41 55);
+    color: rgb(209 213 219);
 }
 
 .game-cell.found-word {
@@ -100,6 +97,11 @@ body {
 
 .word-tag {
   @apply px-3 py-1 rounded-md text-sm bg-green-600 text-white;
+  transition: background-color 0.2s;
+}
+
+.word-tag:hover {
+  background-color: #c62828;
 }
 
 .how-to-play {
@@ -147,13 +149,4 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-.word-tag {
-  /* ... existing styles ... */
-  transition: background-color 0.2s;
-}
-
-.word-tag:hover {
-  background-color: #c62828; /* or any color that indicates deletion */
 }
