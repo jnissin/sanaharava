@@ -36,7 +36,7 @@ const WordSnake = () => {
         setIsLoading(false);
         // Check completion if there are any found words
         if (foundWords.length > 0) {
-          checkGameCompletion();
+          checkGameCompletion(foundWords);
         }
       });
   }, []);
