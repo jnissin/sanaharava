@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
-//import '../styles/WordSnake.css';
 
 interface WordPath {
   path: number[][];
@@ -14,7 +13,7 @@ interface WordPaths {
 
 const GameTitle = () => {
   return (
-    <h1 className="text-3xl font-bold text-center text-white mb-8">
+    <h1 className="game-title">
       C09 Sanalouhos
     </h1>
   );
