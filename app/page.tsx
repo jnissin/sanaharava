@@ -1,9 +1,9 @@
-import ChristmasWordSnake from '@/components/WordSnake';
+import WordSnake from '@/components/WordSnake';
 
 export default function Home() {
   return (
     <main>
-      <ChristmasWordSnake />
+      <WordSnake />
     </main>
   );
 }
