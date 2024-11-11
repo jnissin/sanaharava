@@ -26,13 +26,18 @@ const WordSnake = () => {
     const [wordPaths, setWordPaths] = useState<WordPaths>({});
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-  
+    const [isComplete, setIsComplete] = useState(false);
+
   useEffect(() => {
     fetch('/api/game')
       .then(res => res.json())
       .then(data => {
         setGrid(data.grid);
         setIsLoading(false);
+        // Check completion if there are any found words
+        if (foundWords.length > 0) {
+          checkGameCompletion();
+        }
       });
   }, []);
 
@@ -85,13 +90,26 @@ const WordSnake = () => {
       const { isValid } = await response.json();
       
       if (isValid && !foundWords.includes(word)) {
-        setFoundWords(prev => [...prev, word]);
+        // Create new array of found words
+        const updatedFoundWords = [...foundWords, word];
+        
+        // Update all states
+        setFoundWords(updatedFoundWords);
         setWordPaths(prev => ({
           ...prev,
           [word]: { path: [...currentPath] }
         }));
         setCurrentPath([]);
         setError('');
+        
+        // Check completion with the new array directly
+        const completionResponse = await fetch('/api/game', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ foundWords: updatedFoundWords })
+        });
+        const { isComplete } = await completionResponse.json();
+        setIsComplete(isComplete);
       } else if (foundWords.includes(word)) {
         setError('Sana on jo löytynyt');
       } else {
@@ -102,29 +120,34 @@ const WordSnake = () => {
     }
   };
 
+  const checkGameCompletion = async () => {
+    try {
+      const response = await fetch('/api/game', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ foundWords })
+      });
+      const data = await response.json();
+      setIsComplete(data.isComplete);
+    } catch (error) {
+      console.error('Error checking game completion:', error);
+    }
+  };
+
   const getCellStyles = (rowIndex: number, colIndex: number) => {
     const isPartOfFoundWord = Object.values(wordPaths).some(({ path }) =>
       path.some(([r, c]) => r === rowIndex && c === colIndex)
     );
     
     if (isPartOfFoundWord) {
-      return {
-        backgroundColor: 'rgb(34 197 94)',
-        color: 'white'
-      };
+      return 'game-cell found-word';
     }
     
     if (currentPath.some(([r, c]) => r === rowIndex && c === colIndex)) {
-      return {
-        backgroundColor: 'rgb(59 130 246)',
-        color: 'white'
-      };
+      return 'game-cell current-path';
     }
     
-    return {
-      backgroundColor: 'rgb(31 41 55)',
-      color: 'rgb(209 213 219)'
-    };
+    return 'game-cell';
   };
 
   if (isLoading) {
@@ -142,8 +165,7 @@ const WordSnake = () => {
                   row.map((letter, colIndex) => (
                     <button
                       key={`${rowIndex}-${colIndex}`}
-                      className="game-cell"
-                      style={getCellStyles(rowIndex, colIndex)}
+                      className={getCellStyles(rowIndex, colIndex)}
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       type="button"
                     >
@@ -174,8 +196,14 @@ const WordSnake = () => {
                     <span>{error}</span>
                   </div>
                 )}
+
+                {isComplete && (
+                  <div className="congratulations-message">
+                    <p>Onneksi olkoon! Löysit kaikki sanat! 🎉</p>
+                  </div>
+                )}
               </div>
-              
+
               <div className="found-words-section">
                 <p className="section-title">Löydetyt sanat</p>
                 <div className="found-words-container">

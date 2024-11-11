@@ -10,7 +10,7 @@ const GAME_DATA = {
     ['A', 'F', 'H', 'T', 'N'],
     ['B', 'B', 'C', 'U', 'X']
   ],
-  validWords: ['YUSUF', 'DIKEC', 'LAHJA', 'LUMI', 'JOULU']
+  validWords: ['YUSUF', 'DIKEC', 'LUMI']
 };
 
 // GET endpoint to fetch the grid
@@ -23,4 +23,16 @@ export async function POST(request: Request) {
   const { word } = await request.json();
   const isValid = GAME_DATA.validWords.includes(word);
   return NextResponse.json({ isValid });
+}
+
+// Endpoint to check game completion
+export async function PUT(request: Request) {
+  const { foundWords } = await request.json();
+  const allWordsFound = GAME_DATA.validWords.every(word => 
+    foundWords.includes(word)
+  );
+  return NextResponse.json({ 
+    isComplete: allWordsFound,
+    totalWords: GAME_DATA.validWords.length 
+  });
 }
