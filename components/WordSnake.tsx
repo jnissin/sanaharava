@@ -22,12 +22,12 @@ const GameTitle = () => {
 const WordSnake = () => {
     const [grid, setGrid] = useState<string[][]>([]);
     const [currentPath, setCurrentPath] = useState<number[][]>([]);
-    const [foundWords, setFoundWords] = useState<string[]>([]);
     const [wordPaths, setWordPaths] = useState<WordPaths>({});
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [foundWords, setFoundWords] = useState<string[]>([]);
     const [isComplete, setIsComplete] = useState(false);
-
+    
   useEffect(() => {
     fetch('/api/game')
       .then(res => res.json())
@@ -90,26 +90,15 @@ const WordSnake = () => {
       const { isValid } = await response.json();
       
       if (isValid && !foundWords.includes(word)) {
-        // Create new array of found words
         const updatedFoundWords = [...foundWords, word];
-        
-        // Update all states
         setFoundWords(updatedFoundWords);
         setWordPaths(prev => ({
           ...prev,
           [word]: { path: [...currentPath] }
         }));
+        checkGameCompletion(updatedFoundWords);
         setCurrentPath([]);
         setError('');
-        
-        // Check completion with the new array directly
-        const completionResponse = await fetch('/api/game', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ foundWords: updatedFoundWords })
-        });
-        const { isComplete } = await completionResponse.json();
-        setIsComplete(isComplete);
       } else if (foundWords.includes(word)) {
         setError('Sana on jo löytynyt');
       } else {
@@ -120,15 +109,19 @@ const WordSnake = () => {
     }
   };
 
-  const checkGameCompletion = async () => {
+  const checkGameCompletion = async (words: string[]) => {
     try {
       const response = await fetch('/api/game', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ foundWords })
+        body: JSON.stringify({ foundWords: words })
       });
-      const data = await response.json();
-      setIsComplete(data.isComplete);
+      
+      const { isComplete } = await response.json();
+      
+      if (isComplete) {
+        setIsComplete(true);
+      }
     } catch (error) {
       console.error('Error checking game completion:', error);
     }
@@ -153,6 +146,17 @@ const WordSnake = () => {
   if (isLoading) {
     return <div className="loading">Loading...</div>;
   }
+
+  const handleRemoveWord = (wordToRemove: string) => {
+    setFoundWords(prev => prev.filter(word => word !== wordToRemove));
+    setWordPaths(prev => {
+      const newPaths = { ...prev };
+      delete newPaths[wordToRemove];
+      return newPaths;
+    });
+    // Check completion after removing a word
+    checkGameCompletion(foundWords.filter(word => word !== wordToRemove));
+  };
 
   return (
     <div className="game-outer-container">
@@ -208,8 +212,13 @@ const WordSnake = () => {
                 <p className="section-title">Löydetyt sanat</p>
                 <div className="found-words-container">
                   {foundWords.map(word => (
-                    <div key={word} className="word-tag">
-                      {word}
+                    <div 
+                      key={word} 
+                      className="word-tag"
+                      onClick={() => handleRemoveWord(word)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {word} ×
                     </div>
                   ))}
                 </div>
@@ -223,6 +232,7 @@ const WordSnake = () => {
                   <li>Muodosta sana painamalla Yhdistä.</li>
                   <li>Poista kirjain tai sana napauttamalla sitä uudelleen.</li>
                   <li>Peli on ratkennut, kun saat kaikki kirjaimet yhdistettyä sanoiksi.</li>
+                  <li>Voit poistaa löydetyn sanan klikkaamalla sitä.</li>
                   <li>Jos keksit ratkaisun - onnittelut! Älä kuitenkaan spoilaa yllätystä muille ❤️.</li>
                 </ul>
               </div>

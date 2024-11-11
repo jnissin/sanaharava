@@ -148,3 +148,12 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+.word-tag {
+  /* ... existing styles ... */
+  transition: background-color 0.2s;
+}
+
+.word-tag:hover {
+  background-color: #c62828; /* or any color that indicates deletion */
+}
