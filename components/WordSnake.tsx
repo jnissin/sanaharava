@@ -223,6 +223,7 @@ const WordSnake = () => {
                   <li>Muodosta sana painamalla Yhdistä.</li>
                   <li>Poista kirjain tai sana napauttamalla sitä uudelleen.</li>
                   <li>Peli on ratkennut, kun saat kaikki kirjaimet yhdistettyä sanoiksi.</li>
+                  <li>Jos keksit ratkaisun - onnittelut! Älä kuitenkaan spoilaa yllätystä muille ❤️.</li>
                 </ul>
               </div>
             </div>
