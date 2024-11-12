@@ -1,9 +1,9 @@
-import WordSnake from '@/components/WordSnake';
+import Sanalouhos from '@/components/Sanalouhos';
 
 export default function Home() {
   return (
     <main>
-      <WordSnake />
+      <Sanalouhos />
     </main>
   );
 }

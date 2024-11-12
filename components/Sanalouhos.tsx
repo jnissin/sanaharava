@@ -20,7 +20,7 @@ const GameTitle = () => {
   );
 };
 
-const WordSnake = () => {
+const Sanalouhos = () => {
     const [grid, setGrid] = useState<string[][]>([]);
     const [currentPath, setCurrentPath] = useState<number[][]>([]);
     const [wordPaths, setWordPaths] = useState<WordPaths>({});
@@ -334,4 +334,4 @@ const WordSnake = () => {
   );
 };
 
-export default WordSnake;
+export default Sanalouhos;
