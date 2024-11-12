@@ -56,7 +56,8 @@ export async function PUT(request: Request) {
   }
   
   return NextResponse.json({ 
-    isComplete,
-    strictMode
+    isComplete: isComplete,
+    strictMode: strictMode,
+    congratulationImage: isComplete ? '/8d7f3e2c6a9b4.jpg' : null
   });
 }

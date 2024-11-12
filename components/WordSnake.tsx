@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 
 interface WordPath {
   path: number[][];
@@ -27,7 +28,8 @@ const WordSnake = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [foundWords, setFoundWords] = useState<string[]>([]);
     const [isComplete, setIsComplete] = useState(false);
-    
+    const [congratulationImage, setCongratulationImage] = useState<string | null>(null);
+
   useEffect(() => {
     fetch('/api/game')
       .then(res => res.json())
@@ -117,10 +119,11 @@ const WordSnake = () => {
         body: JSON.stringify({ foundWords: words })
       });
       
-      const { isComplete } = await response.json();
+      const { isComplete, congratulationImage: congratulationImage } = await response.json();
       
       if (isComplete) {
-        setIsComplete(true);
+        setIsComplete(isComplete);
+        setCongratulationImage(congratulationImage);
       }
     } catch (error) {
       console.error('Error checking game completion:', error);
@@ -283,6 +286,13 @@ const WordSnake = () => {
                 {isComplete && (
                   <div className="congratulations-message">
                     <p>Onneksi olkoon! Löysit kaikki sanat! 🎉</p>
+                    <Image 
+                      src={congratulationImage || ''}
+                      alt="Congratulation image"
+                      className="celebration-image"
+                      width={200}
+                      height={200}
+                    />
                   </div>
                 )}
               </div>
