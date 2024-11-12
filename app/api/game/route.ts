@@ -13,7 +13,10 @@ const GAME_DATA = {
   // Words that are part of the real solution where all the letters are used
   solutionWords: ["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"],
   // Add additional valid words that aren't part of the solution
-  additionalValidWords: ["YRTTI", "UFO", "GG", "SUO", "SUU", "KUU", "KOE", "OJA", "TIE", "SEI"]
+  additionalValidWords: [
+    "YRTTI", "UFO", "GG", "SUO", "SUU", "KUU", "KOE", "OJA", "TIE", "SEI",
+    "RUUSU", "TUORE", "SUURI", "KOURU"
+  ]
 };
 
 // GET endpoint to fetch the grid
