@@ -26,10 +26,12 @@ const GAME_DATA = {
     }
     try {
       const dictionaryPath = path.join(process.cwd(), DICTIONARY_PATH);
-      return readFileSync(dictionaryPath, 'utf-8')
+      const words = readFileSync(dictionaryPath, 'utf-8')
         .split('\n')
         .map(word => word.trim().toUpperCase())
         .filter(word => word.length >= 2);
+      console.log(`Loaded dictionary from ${DICTIONARY_PATH} with ${words.length} words`);
+      return words;
     } catch (error) {
       console.warn('Failed to load dictionary:', error);
       return [];
