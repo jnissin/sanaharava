@@ -34,6 +34,7 @@ const WordSnake = () => {
     fetch('/api/game')
       .then(res => res.json())
       .then(data => {
+        console.log("👋 Terkkuja kaikille nokkelille reversaajille! Tehtiin kuitenkin sillain tää et piilotettiin ratkasut API:n taakse 😉");
         setGrid(data.grid);
         setIsLoading(false);
         // Check completion if there are any found words
