@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { readFileSync } from 'fs';
+import path from 'path';
 
-// Game data stays on the server
+const DICTIONARY_PATH = "data/fi-dictionary-kotus-2024.txt"
 const GAME_DATA = {
   grid: [
     ['I', 'T', 'T', 'G', 'F'],
@@ -12,11 +14,27 @@ const GAME_DATA = {
   ],
   // Words that are part of the real solution where all the letters are used
   solutionWords: ["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"],
-  // Add additional valid words that aren't part of the solution
+  // Add additional valid words that aren't part of the solution but considered valid
   additionalValidWords: [
     "YRTTI", "UFO", "GG", "SUO", "SUU", "KUU", "KOE", "OJA", "TIE", "SEI",
-    "RUUSU", "TUORE", "SUURI", "KOURU", "JOKU", "JOKI"
-  ]
+    "RUUSU", "TUORE", "SUURI", "KOURU", "JOKU"
+  ],
+  // Dictionary of valid words
+  dictionaryWords: (() => {
+    if (!DICTIONARY_PATH) {
+      return [];
+    }
+    try {
+      const dictionaryPath = path.join(process.cwd(), DICTIONARY_PATH);
+      return readFileSync(dictionaryPath, 'utf-8')
+        .split('\n')
+        .map(word => word.trim().toUpperCase())
+        .filter(word => word.length >= 2);
+    } catch (error) {
+      console.warn('Failed to load dictionary:', error);
+      return [];
+    }
+  })()
 };
 
 // GET endpoint to fetch the grid
@@ -28,7 +46,8 @@ export async function GET() {
 export async function POST(request: Request) {
   const { word } = await request.json();
   const isValid = GAME_DATA.solutionWords.includes(word) || 
-                 GAME_DATA.additionalValidWords.includes(word);
+                 GAME_DATA.additionalValidWords.includes(word) ||
+                 GAME_DATA.dictionaryWords.includes(word);
   const isSolutionWord = GAME_DATA.solutionWords.includes(word);
   return NextResponse.json({ isValid, isSolutionWord });
 }
