@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import path from 'path';
 
+
 const DICTIONARY_PATH = "data/fi-dictionary-kotus-2024.txt"
 const GAME_DATA = {
   grid: [
@@ -16,11 +17,11 @@ const GAME_DATA = {
   solutionWords: ["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"],
   // Additional valid words that aren't part of the solution but considered valid
   // this can be used to extend the optional dictionary
-  additionalValidWords: [],
+  additionalValidWords: [] as string[],
   // Dictionary of valid words
   dictionaryWords: (() => {
     if (!DICTIONARY_PATH) {
-      return [];
+      return [] as string[];
     }
     try {
       const dictionaryPath = path.join(process.cwd(), DICTIONARY_PATH);
@@ -32,7 +33,7 @@ const GAME_DATA = {
       return words;
     } catch (error) {
       console.warn('Failed to load dictionary:', error);
-      return [];
+      return [] as string[];
     }
   })()
 };
