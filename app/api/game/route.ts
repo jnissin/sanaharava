@@ -14,11 +14,9 @@ const GAME_DATA = {
   ],
   // Words that are part of the real solution where all the letters are used
   solutionWords: ["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"],
-  // Add additional valid words that aren't part of the solution but considered valid
-  additionalValidWords: [
-    "YRTTI", "UFO", "GG", "SUO", "SUU", "KUU", "KOE", "OJA", "TIE", "SEI",
-    "RUUSU", "TUORE", "SUURI", "KOURU", "JOKU"
-  ],
+  // Additional valid words that aren't part of the solution but considered valid
+  // this can be used to extend the optional dictionary
+  additionalValidWords: [],
   // Dictionary of valid words
   dictionaryWords: (() => {
     if (!DICTIONARY_PATH) {
