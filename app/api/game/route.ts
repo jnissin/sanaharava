@@ -15,7 +15,7 @@ const GAME_DATA = {
   // Add additional valid words that aren't part of the solution
   additionalValidWords: [
     "YRTTI", "UFO", "GG", "SUO", "SUU", "KUU", "KOE", "OJA", "TIE", "SEI",
-    "RUUSU", "TUORE", "SUURI", "KOURU"
+    "RUUSU", "TUORE", "SUURI", "KOURU", "JOKU", "JOKI"
   ]
 };
 
