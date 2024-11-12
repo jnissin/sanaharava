@@ -148,14 +148,18 @@ const WordSnake = () => {
   }
 
   const handleRemoveWord = (wordToRemove: string) => {
-    setFoundWords(prev => prev.filter(word => word !== wordToRemove));
+    const updatedFoundWords = foundWords.filter(word => word !== wordToRemove);
+    setFoundWords(updatedFoundWords);
     setWordPaths(prev => {
       const newPaths = { ...prev };
       delete newPaths[wordToRemove];
       return newPaths;
     });
-    // Check completion after removing a word
-    checkGameCompletion(foundWords.filter(word => word !== wordToRemove));
+
+    // Reset isComplete to false when removing a word
+    // and re-check the completion with updated words
+    setIsComplete(false);
+    checkGameCompletion(updatedFoundWords);
   };
 
   const renderWordPaths = () => {
