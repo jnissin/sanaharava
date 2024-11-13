@@ -131,6 +131,16 @@ body {
   @apply text-blue-400 font-bold;
 }
 
+.hidden-instruction,
+.hidden-instruction::before {
+  color: transparent !important;
+}
+
+.hidden-instruction::selection {
+  color: rgb(var(--foreground-rgb)) !important;
+  background: rgb(59 130 246);
+}
+
 .section-title {
   @apply text-gray-400 text-sm font-semibold;
 }
