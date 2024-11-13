@@ -13,27 +13,30 @@ const GAME_DATA = {
     ['R', 'I', 'T', 'O', 'I'],
     ['E', 'S', 'D', 'A', 'J']
   ],
+  minValidWordLength: 3,
   // Words that are part of the real solution where all the letters are used
-  solutionWords: ["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"],
+  solutionWords: new Set(["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"]),
   // Additional valid words that aren't part of the solution but considered valid
   // this can be used to extend the optional dictionary
-  additionalValidWords: [] as string[],
+  additionalValidWordsSet: new Set<string>([]),
   // Dictionary of valid words
   dictionaryWords: (() => {
     if (!DICTIONARY_PATH) {
-      return [] as string[];
+      return new Set<string>();
     }
     try {
       const dictionaryPath = path.join(process.cwd(), DICTIONARY_PATH);
-      const words = readFileSync(dictionaryPath, 'utf-8')
-        .split('\n')
-        .map(word => word.trim().toUpperCase())
-        .filter(word => word.length >= 2);
-      console.log(`Loaded dictionary from ${DICTIONARY_PATH} with ${words.length} words`);
-      return words;
+      const wordsSet = new Set(
+        readFileSync(dictionaryPath, 'utf-8')
+          .split('\n')
+          .map(word => word.trim().toUpperCase())
+          .filter(word => word.length >= 2)
+      );
+      console.log(`Loaded dictionary from ${DICTIONARY_PATH} with ${wordsSet.size} words`);
+      return wordsSet;
     } catch (error) {
       console.warn('Failed to load dictionary:', error);
-      return [] as string[];
+      return new Set<string>();
     }
   })()
 };
@@ -46,11 +49,12 @@ export async function GET() {
 // POST endpoint to verify words
 export async function POST(request: Request) {
   const { word } = await request.json();
-  const isValid = GAME_DATA.solutionWords.includes(word) || 
-                 GAME_DATA.additionalValidWords.includes(word) ||
-                 GAME_DATA.dictionaryWords.includes(word);
-  const isSolutionWord = GAME_DATA.solutionWords.includes(word);
-  return NextResponse.json({ isValid, isSolutionWord });
+  const isValid = word.length >= GAME_DATA.minValidWordLength && (
+    GAME_DATA.solutionWords.has(word) || 
+    GAME_DATA.additionalValidWordsSet.has(word) ||
+    GAME_DATA.dictionaryWords.has(word)
+  );
+  return NextResponse.json({ isValid });
 }
 
 // Endpoint to check game completion
@@ -58,12 +62,12 @@ export async function PUT(request: Request) {
   const { foundWords } = await request.json();
   
   // Check that all solution words are found
-  const solutionWordsFound = GAME_DATA.solutionWords.every(word => 
+  const solutionWordsFound = Array.from(GAME_DATA.solutionWords).every(word => 
     foundWords.includes(word)
   );
 
-  // Check that only solution words are present (no extra words)
-  const onlySolutionWords = foundWords.length === GAME_DATA.solutionWords.length;
+  // Check that only solution words are present
+  const onlySolutionWords = foundWords.length === GAME_DATA.solutionWords.size;
   
   // Add strict mode validation
   const strictMode = process.env.STRICT_WIN_CONDITION ?? 'false';
@@ -71,7 +75,7 @@ export async function PUT(request: Request) {
 
   if (strictMode === 'true' && isComplete) {
     const gridSize = GAME_DATA.grid.length * GAME_DATA.grid[0].length;
-    const totalLettersInWords = GAME_DATA.solutionWords.reduce((sum, word) => sum + word.length, 0);
+    const totalLettersInWords = Array.from(GAME_DATA.solutionWords).reduce((sum, word) => sum + word.length, 0);
     isComplete = totalLettersInWords === gridSize;
   }
   
