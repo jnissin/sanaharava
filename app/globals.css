@@ -131,14 +131,24 @@ body {
   @apply text-blue-400 font-bold;
 }
 
-.hidden-instruction,
+.hidden-instruction, 
 .hidden-instruction::before {
   color: transparent !important;
+  -webkit-user-select: text;  /* For iOS Safari */
+  user-select: text;
 }
 
 .hidden-instruction::selection {
   color: rgb(var(--foreground-rgb)) !important;
   background: rgb(59 130 246);
+}
+
+/* For iOS Safari */
+@media (hover: none) {
+  .hidden-instruction:active {
+    color: rgb(var(--foreground-rgb)) !important;
+    background: rgb(59 130 246);
+  }
 }
 
 .section-title {
