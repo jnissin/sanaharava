@@ -6,7 +6,8 @@ import { NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { kv } from '@vercel/kv';
 import { GameData } from '@/app/types/game';
-import { trackEvent } from '@/lib/umami-analytics';
+import { analytics } from '@/lib/analytics-service';
+
 
 // In memory cache structure
 const cache = new NodeCache({
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
   );
 
   if (isValid) {
-    await trackEvent('word_found', {
+    analytics.track('word_found', {
       gameId: gameData.id,
       word,
       wordLength: word.length,
@@ -121,7 +122,7 @@ export async function POST(request: Request) {
                 'dictionary'
     }, '/api/game');
   } else {
-    await trackEvent('invalid_word_attempt', {
+    analytics.track('invalid_word_attempt', {
       gameId: gameData.id,
       word,
       wordLength: word.length,
@@ -167,6 +168,15 @@ export async function PUT(request: Request) {
 
   let isComplete = solutionWordsFound && onlySolutionWords && allLettersUsed;
   
+  if (isComplete) {
+    analytics.track('game_completed', {
+      gameId: gameData.id,
+      foundWords,
+      totalWords: solutionWordsSet.size,
+      gridSize
+    }, '/api/game');
+  }
+
   return NextResponse.json({ 
     isComplete,
     congratulationImage: isComplete ? '/8d7f3e2c6a9b4.jpg' : null
