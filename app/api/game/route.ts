@@ -18,8 +18,8 @@ const dictionaryPaths: Record<string, string> = {
   "fi-kotus-2024": "data/fi-dictionary-kotus-2024.txt"
 };
 
-async function loadDictionary(dictionaryName?: string): Promise<Set<string>> {
-  if (!dictionaryName) {
+async function loadDictionary(dictionaryName: string | null): Promise<Set<string>> {
+  if (dictionaryName === null) {
     return new Set<string>();
   }
 
@@ -137,20 +137,16 @@ export async function PUT(request: Request) {
   // Check that only solution words are present
   const onlySolutionWords = foundWords.length === solutionWordsSet.size;
   
-  // Add strict mode validation
-  const strictMode = process.env.STRICT_WIN_CONDITION ?? 'false';
-  let isComplete = solutionWordsFound && onlySolutionWords;
+  // Check that the number of letters in words matches the grid size
+  const gridSize = gameData.grid.length * gameData.grid[0].length;
+  const totalLettersInWords = Array.from(solutionWordsSet)
+    .reduce((sum, word) => sum + word.length, 0);
+  const allLettersUsed = totalLettersInWords === gridSize
 
-  if (strictMode === 'true' && isComplete) {
-    const gridSize = gameData.grid.length * gameData.grid[0].length;
-    const totalLettersInWords = Array.from(solutionWordsSet)
-      .reduce((sum, word) => sum + word.length, 0);
-    isComplete = totalLettersInWords === gridSize;
-  }
+  let isComplete = solutionWordsFound && onlySolutionWords && allLettersUsed;
   
   return NextResponse.json({ 
     isComplete,
-    strictMode,
     congratulationImage: isComplete ? '/8d7f3e2c6a9b4.jpg' : null
   });
 }
