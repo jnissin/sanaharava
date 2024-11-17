@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { kv } from '@vercel/kv';
 import { GameData } from '@/app/types/game';
+import { trackEvent } from '@/lib/umami-analytics';
 
 // In memory cache structure
 const cache = new NodeCache({
@@ -17,6 +18,7 @@ const cache = new NodeCache({
 const dictionaryPaths: Record<string, string> = {
   "fi-kotus-2024": "data/fi-dictionary-kotus-2024.txt"
 };
+
 
 async function loadDictionary(dictionaryName: string | null): Promise<Set<string>> {
   if (dictionaryName === null) {
@@ -101,11 +103,31 @@ export async function POST(request: Request) {
   const additionalWordsSet = new Set(gameData.additionalValidWords);
   const dictionaryWords = await loadDictionary(gameData.validWordsDictionaryName);
 
+  const isSolutionWord = solutionWordsSet.has(word);
+  const isAdditionalWord = additionalWordsSet.has(word);
+  const isDictionaryWord = dictionaryWords.has(word);
+  
   const isValid = word.length >= gameData.minValidWordLength && (
-    solutionWordsSet.has(word) || 
-    additionalWordsSet.has(word) ||
-    dictionaryWords.has(word)
+    isSolutionWord || isAdditionalWord || isDictionaryWord
   );
+
+  if (isValid) {
+    await trackEvent('word_found', {
+      gameId: gameData.id,
+      word,
+      wordLength: word.length,
+      wordType: isSolutionWord ? 'solution' : 
+                isAdditionalWord ? 'additional' : 
+                'dictionary'
+    }, '/api/game');
+  } else {
+    await trackEvent('invalid_word_attempt', {
+      gameId: gameData.id,
+      word,
+      wordLength: word.length,
+      reason: word.length < gameData.minValidWordLength ? 'too_short' : 'not_a_valid_word'
+    }, '/api/game');
+  }
 
   return NextResponse.json({ isValid });
 }
