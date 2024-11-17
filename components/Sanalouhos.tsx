@@ -324,8 +324,6 @@ const Sanalouhos = () => {
                   <li>Poista kirjain tai sana napauttamalla sitä uudelleen.</li>
                   <li>Peli on ratkennut, kun saat kaikki kirjaimet yhdistettyä sanoiksi.</li>
                   <li>Voit poistaa löydetyn sanan klikkaamalla sitä.</li>
-                  <li>Jos keksit ratkaisun - onnittelut! Älä kuitenkaan spoilaa yllätystä muille ❤️.</li>
-                  <li className="hidden-instruction">Sanat voivat sisältää yleisnimiä, erisnimiä ja sisäpiiri-ilmaisuja</li>
                 </ul>
               </div>
             </div>
