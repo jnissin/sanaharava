@@ -15,7 +15,7 @@ interface WordPaths {
 const GameTitle = () => {
   return (
     <h1 className="game-title">
-      C09 Sanalouhos
+      Sanalouhos
     </h1>
   );
 };
