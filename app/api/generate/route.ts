@@ -1,16 +1,6 @@
 import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
-
-
-interface GameData {
-  id: string;
-  grid: string[][];
-  minValidWordLength: number;
-  solutionWords: string[];
-  additionalValidWords: string[];
-  validWordsDictionaryPath: string;
-  timestamp: number;
-}
+import { GameData } from '@/app/types/game';
 
 
 function generateNewGameData(gameId: string): GameData {

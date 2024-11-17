@@ -12,11 +12,13 @@
     "@vercel/kv": "^3.0.0",
     "lucide-react": "^0.292.0",
     "next": "^14.2.17",
+    "node-cache": "^5.1.2",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/node-cache": "^4.2.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
