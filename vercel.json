@@ -14,5 +14,8 @@
           { "key": "Access-Control-Allow-Origin", "value": "*" }
         ]
       }
-    ]
+    ],
+    "crons": {
+        "daily": "0 0 * * *"
+    }
   }
