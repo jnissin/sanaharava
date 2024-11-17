@@ -4,6 +4,6 @@ export interface GameData {
     minValidWordLength: number;
     solutionWords: string[];
     additionalValidWords: string[];
-    validWordsDictionaryPath: string;
+    validWordsDictionaryName: string | null;
     timestamp: number;
   }

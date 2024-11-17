@@ -18,7 +18,7 @@ function generateNewGameData(gameId: string): GameData {
     minValidWordLength: 3,
     solutionWords: ["YUSUF", "DIKEC", "TSERS", "JOGURTTI", "GEORGIA"],
     additionalValidWords: [],
-    validWordsDictionaryPath: "data/fi-dictionary-kotus-2024.txt",
+    validWordsDictionaryName: "fi-kotus-2024",
     timestamp: Date.now()
   };
 }

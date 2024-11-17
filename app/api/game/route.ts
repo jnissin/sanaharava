@@ -14,12 +14,20 @@ const cache = new NodeCache({
   useClones: false // Prevent cloning of complex objects like Sets
 });
 
-async function loadDictionary(dictionaryPath: string): Promise<Set<string>> {
-  const cached = cache.get<Set<string>>(dictionaryPath);
+const dictionaryPaths: Record<string, string> = {
+  "fi-kotus-2024": "data/fi-dictionary-kotus-2024.txt"
+};
+
+async function loadDictionary(dictionaryName?: string): Promise<Set<string>> {
+  if (!dictionaryName) {
+    return new Set<string>();
+  }
+
+  const cached = cache.get<Set<string>>(dictionaryName);
   if (cached) return cached;
 
   try {
-    const fullPath = path.join(process.cwd(), dictionaryPath);
+    const fullPath = path.join(process.cwd(), dictionaryPaths[dictionaryName]);
     const dictionary = new Set(
       readFileSync(fullPath, 'utf-8')
         .split('\n')
@@ -27,8 +35,8 @@ async function loadDictionary(dictionaryPath: string): Promise<Set<string>> {
         .filter(word => word.length >= 2)
     );
     
-    cache.set(dictionaryPath, dictionary);
-    console.log(`Loaded dictionary from ${dictionaryPath} with ${dictionary.size} words`);
+    cache.set(dictionaryName, dictionary);
+    console.log(`Loaded dictionary ${dictionaryName} from ${dictionaryPaths[dictionaryName]} with ${dictionary.size} words`);
     return dictionary;
   } catch (error) {
     console.warn('Failed to load dictionary:', error);
@@ -91,7 +99,7 @@ export async function POST(request: Request) {
 
   const solutionWordsSet = new Set(gameData.solutionWords);
   const additionalWordsSet = new Set(gameData.additionalValidWords);
-  const dictionaryWords = await loadDictionary(gameData.validWordsDictionaryPath);
+  const dictionaryWords = await loadDictionary(gameData.validWordsDictionaryName);
 
   const isValid = word.length >= gameData.minValidWordLength && (
     solutionWordsSet.has(word) || 
