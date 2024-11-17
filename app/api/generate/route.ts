@@ -23,7 +23,15 @@ function generateNewGameData(gameId: string): GameData {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Authorization check for cron job
+  if (request.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Unauthorized' 
+    }, { status: 401 });
+  }
+
   try {
     const gameId = new Date().toISOString().split('T')[0];
     const newGameData = generateNewGameData(gameId);
