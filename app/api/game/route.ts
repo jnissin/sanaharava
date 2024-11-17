@@ -171,9 +171,6 @@ export async function PUT(request: Request) {
   if (isComplete) {
     analytics.track('game_completed', {
       gameId: gameData.id,
-      foundWords,
-      totalWords: solutionWordsSet.size,
-      gridSize
     }, '/api/game');
   }
 
