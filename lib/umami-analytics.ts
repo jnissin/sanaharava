@@ -33,11 +33,9 @@ type EventData = {
           statusText: response.statusText,
           error: errorText
         });
-      } else {
-        console.log('Umami event tracked successfully:', eventName);
       }
-  
+
     } catch (error) {
-      console.error('Failed to track analytics:', error);
+      console.error('Failed to track Umami analytics:', error);
     }
   }

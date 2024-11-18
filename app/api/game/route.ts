@@ -17,7 +17,7 @@ const cache = new NodeCache({
 });
 
 const dictionaryPaths: Record<string, string> = {
-  "fi-kotus-2024": "data/fi-dictionary-kotus-2024.txt"
+  "fi-kotus-2024": "public/data/fi-dictionary-kotus-2024.txt"
 };
 
 
