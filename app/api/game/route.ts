@@ -30,40 +30,19 @@ async function loadDictionary(dictionaryName: string | null): Promise<Set<string
   if (cached) return cached;
 
   try {
-    const fullPath = path.join(process.cwd(), dictionaryPaths[dictionaryName]);
-    
-    // Debug information
-    console.log({
-      environment: process.env.NODE_ENV,
-      currentWorkingDirectory: process.cwd(),
-      attemptedPath: fullPath,
-      dictionaryName,
-      directoryContents: await fs.readdir(process.cwd())
-    });
-
-    const fileContent = await fs.readFile(fullPath, 'utf-8');
+    const dictionaryFullPath = path.join(process.cwd(), dictionaryPaths[dictionaryName]);
+    const fileContent = await fs.readFile(dictionaryFullPath, 'utf-8');
     const dictionary = new Set(
       fileContent
         .split('\n')
         .map(word => word.trim().toUpperCase())
         .filter(word => word.length >= 2)
     );
-    
     cache.set(dictionaryName, dictionary);
-    console.log(`Loaded dictionary ${dictionaryName} from ${fullPath} with ${dictionary.size} words`);
+    console.log(`Loaded dictionary ${dictionaryName} from ${dictionaryFullPath} with ${dictionary.size} words`);
     return dictionary;
   } catch (error: any) {
-    console.warn('Failed to load dictionary:', {
-      error: error.message,
-      code: error.code,
-      path: error.path,
-      env: process.env.NODE_ENV,
-      vercelEnv: process.env.VERCEL_ENV,
-      cwd: process.cwd(),
-      files: await fs.access(process.cwd())
-        .then(() => fs.readdir(process.cwd()))
-        .catch(() => 'cannot read directory')
-    });
+    console.warn(`Failed to load dictionary ${dictionaryName}, available paths: ${dictionaryPaths}:`, error);
     return new Set<string>();
   }
 }
