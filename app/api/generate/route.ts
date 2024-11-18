@@ -100,7 +100,7 @@ function calculateDifficultyScore(words: string[]): number {
   // 2. Score based on shared letters
   const letterFrequency: { [key: string]: number } = {};
   words.forEach(word => {
-    [...new Set(word.toLowerCase())].forEach(letter => {
+    Array.from(new Set(word.toLowerCase())).forEach(letter => {
       letterFrequency[letter] = (letterFrequency[letter] || 0) + 1;
     });
   });
