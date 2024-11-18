@@ -3,7 +3,7 @@ import path from 'path';
 import NodeCache from 'node-cache';
 
 import { NextResponse } from 'next/server';
-import { readFileSync } from 'fs';
+import { promises as fs } from 'fs';
 import { kv } from '@vercel/kv';
 import { GameData } from '@/app/types/game';
 import { analytics } from '@/lib/analytics-service';
@@ -31,18 +31,39 @@ async function loadDictionary(dictionaryName: string | null): Promise<Set<string
 
   try {
     const fullPath = path.join(process.cwd(), dictionaryPaths[dictionaryName]);
+    
+    // Debug information
+    console.log({
+      environment: process.env.NODE_ENV,
+      currentWorkingDirectory: process.cwd(),
+      attemptedPath: fullPath,
+      dictionaryName,
+      directoryContents: await fs.readdir(process.cwd())
+    });
+
+    const fileContent = await fs.readFile(fullPath, 'utf-8');
     const dictionary = new Set(
-      readFileSync(fullPath, 'utf-8')
+      fileContent
         .split('\n')
         .map(word => word.trim().toUpperCase())
         .filter(word => word.length >= 2)
     );
     
     cache.set(dictionaryName, dictionary);
-    console.log(`Loaded dictionary ${dictionaryName} from ${dictionaryPaths[dictionaryName]} with ${dictionary.size} words`);
+    console.log(`Loaded dictionary ${dictionaryName} from ${fullPath} with ${dictionary.size} words`);
     return dictionary;
-  } catch (error) {
-    console.warn('Failed to load dictionary:', error);
+  } catch (error: any) {
+    console.warn('Failed to load dictionary:', {
+      error: error.message,
+      code: error.code,
+      path: error.path,
+      env: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
+      cwd: process.cwd(),
+      files: await fs.access(process.cwd())
+        .then(() => fs.readdir(process.cwd()))
+        .catch(() => 'cannot read directory')
+    });
     return new Set<string>();
   }
 }
