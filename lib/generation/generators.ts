@@ -271,7 +271,7 @@ export async function generateGameData(
   const solutionWords = selectedWords.map((word) => word.toUpperCase());
   const generator = new GameGenerator(new Set(solutionWords), 6, 5);
   const grid = generator.generate(); 
-  generator.debugPrintGame();
+  //generator.debugPrintGame();
 
   return {
     id: gameId,
