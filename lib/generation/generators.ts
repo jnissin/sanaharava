@@ -7,6 +7,7 @@ import {
   ThemeListResponse,
   WordListResponse,
 } from "@/lib/generation/schemas";
+import { GameGenerator } from "./game-generator";
 
 const openai = new OpenAI();
 
@@ -268,7 +269,9 @@ export async function generateGameData(
   );
 
   const solutionWords = selectedWords.map((word) => word.toUpperCase());
-  const grid = generateWordGrid(solutionWords, 6, 5);
+  const generator = new GameGenerator(new Set(solutionWords), 6, 5);
+  const grid = generator.generate(); 
+  generator.debugPrintGame();
 
   return {
     id: gameId,
