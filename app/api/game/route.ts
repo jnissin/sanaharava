@@ -2,7 +2,7 @@ import path from 'path';
 
 import NodeCache from 'node-cache';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import { kv } from '@vercel/kv';
 import { GameData } from '@/app/types/game';
@@ -48,7 +48,7 @@ async function loadDictionary(dictionaryName: string | null): Promise<Set<string
   }
 }
 
-async function getGameData(gameId?: string, rows?: number, columns?: number): Promise<GameData | null> {
+async function getGameData(gameId: string | null, rows: number | null, columns: number | null): Promise<GameData | null> {
   if (!gameId) {
     const latestGames = await kv.zrange('game_dates', -1, -1);
     if (!latestGames.length) {
@@ -80,8 +80,12 @@ async function getGameData(gameId?: string, rows?: number, columns?: number): Pr
 }
 
 // GET endpoint to fetch the grid
-export async function GET(gameId?:string, rows?:number, columns?:number) {
-  // const gameData = await getGameData(undefined, rows, columns);
+//export async function GET(gameId?:string, rows?:number, columns?:number) {
+export async function GET(request: NextRequest) {
+  const gameId: string | null = request.nextUrl.searchParams.get('gameId');
+  const rows: number | null = Number(request.nextUrl.searchParams.get('rows'));
+  const columns: number | null = Number(request.nextUrl.searchParams.get('columns'));
+  //const gameData = await getGameData(undefined, undefined, undefined);
   const gameData = await getGameData(gameId, rows, columns);
   if (!gameData) {
     return NextResponse.json(
@@ -90,14 +94,15 @@ export async function GET(gameId?:string, rows?:number, columns?:number) {
     );
   }
 
-  return NextResponse.json({ grid: gameData.grid });
+  return NextResponse.json({ grid: gameData.grid, id: gameData.id });
 }
 
 
 
 // POST endpoint to verify words
-export async function POST(request: Request) {
-  const gameData = await getGameData();
+export async function POST(request: NextRequest) {
+  const gameId: string | null = request.nextUrl.searchParams.get('gameId');
+  const gameData = await getGameData(gameId, null, null);
   if (!gameData) {
     return NextResponse.json(
       { error: 'No game data available' }, 
@@ -147,8 +152,9 @@ export async function POST(request: Request) {
 }
 
 // PUT endpoint to check game completion
-export async function PUT(request: Request) {
-  const gameData = await getGameData();
+export async function PUT(request: NextRequest) {
+  const gameId: string | null = request.nextUrl.searchParams.get('gameId');
+  const gameData = await getGameData(gameId, null, null);
   if (!gameData) {
     return NextResponse.json(
       { error: 'No game data available' }, 

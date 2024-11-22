@@ -234,8 +234,8 @@ function generateWordGrid(
 export async function generateGameData(
   gameId: string,
   language: "finnish" | "english" = "finnish",
-  rowCount?: number,
-  columnCount?: number
+  rowCount: number | null,
+  columnCount: number | null
 ): Promise<GameData> {
 
   if(!rowCount || !Number.isInteger(rowCount) || rowCount < 6 || rowCount > 8)

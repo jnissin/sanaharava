@@ -29,13 +29,18 @@ const Sanalouhos = () => {
     const [foundWords, setFoundWords] = useState<string[]>([]);
     const [isComplete, setIsComplete] = useState(false);
     const [congratulationImage, setCongratulationImage] = useState<string | null>(null);
+    const [rowCount, setRowCount] = useState<number>(6);
+    const [columnCount, setColumnCount] = useState<number>(5);
+    const [gameId, setGameId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/game')
+    fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`)
       .then(res => res.json())
       .then(data => {
         console.log("👋 Terkkuja kaikille nokkelille reversaajille! Tehtiin kuitenkin sillain tää et piilotettiin ratkasut API:n taakse 😉");
         setGrid(data.grid);
+        console.log(data);
+        setGameId(data.id);
         setIsLoading(false);
         // Check completion if there are any found words
         if (foundWords.length > 0) {
@@ -84,7 +89,7 @@ const Sanalouhos = () => {
     const word = getWord(currentPath);
     
     try {
-      const response = await fetch('/api/game', {
+      const response = await fetch(`/api/game?gameId=${gameId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ word })
@@ -114,7 +119,7 @@ const Sanalouhos = () => {
 
   const checkGameCompletion = async (words: string[]) => {
     try {
-      const response = await fetch('/api/game', {
+      const response = await fetch(`/api/game?gameId=${gameId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ foundWords: words })
