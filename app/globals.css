@@ -47,7 +47,7 @@ body {
   grid-template-columns: repeat(5, 50px);
   gap: 8px; /* Gap between cells */
   width: 282px; /* (50px * 5) + (8px * 4) for gaps */
-  height: 340px; /* (50px * 6) + (8px * 5) for gaps */
+  min-height: 340px; /* (50px * 6) + (8px * 5) for gaps */
   margin: 0 auto;
 }
 

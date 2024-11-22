@@ -7,6 +7,7 @@ import { promises as fs } from 'fs';
 import { kv } from '@vercel/kv';
 import { GameData } from '@/app/types/game';
 import { analytics } from '@/lib/analytics-service';
+import { generateGameData } from '@/lib/generation/generators';
 
 
 // In memory cache structure
@@ -47,7 +48,7 @@ async function loadDictionary(dictionaryName: string | null): Promise<Set<string
   }
 }
 
-async function getGameData(gameId?: string): Promise<GameData | null> {
+async function getGameData(gameId?: string, rows?: number, columns?: number): Promise<GameData | null> {
   if (!gameId) {
     const latestGames = await kv.zrange('game_dates', -1, -1);
     if (!latestGames.length) {
@@ -64,14 +65,24 @@ async function getGameData(gameId?: string): Promise<GameData | null> {
   const gameData = await kv.get<GameData>(cacheKey);
   if (gameData) {
     cache.set(cacheKey, gameData);
+    return gameData;
   }
 
-  return gameData;
+  //generate new game
+  const language = undefined; //TODO implement language passing from client
+  
+  gameId = new Date().toISOString().split("T")[0];
+  const newGameData = await generateGameData(gameId, language || "finnish", rows, columns);
+
+  // Store game with date as key for direct access
+  await kv.set(`game:${gameId}`, newGameData);
+  return newGameData;
 }
 
 // GET endpoint to fetch the grid
-export async function GET() {
-  const gameData = await getGameData();
+export async function GET(gameId?:string, rows?:number, columns?:number) {
+  // const gameData = await getGameData(undefined, rows, columns);
+  const gameData = await getGameData(gameId, rows, columns);
   if (!gameData) {
     return NextResponse.json(
       { error: 'No game data available' }, 
@@ -81,6 +92,8 @@ export async function GET() {
 
   return NextResponse.json({ grid: gameData.grid });
 }
+
+
 
 // POST endpoint to verify words
 export async function POST(request: Request) {
