@@ -31,7 +31,7 @@ const Sanaharava = () => {
     const [congratulationImage, setCongratulationImage] = useState<string | null>(null);
     const [rowCount, setRowCount] = useState<number>(6);
     const [columnCount, setColumnCount] = useState<number>(5);
-    const [gameId, setGameId] = useState<string | null>(null);
+    const [gameId, setGameId] = useState<string | null>(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
     fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`)
