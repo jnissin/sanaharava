@@ -8,6 +8,7 @@ import {
   WordListResponse,
 } from "@/lib/generation/schemas";
 import { GameGenerator } from "./game-generator";
+import { loadDictionary } from '@/lib/dictionary';
 
 const openai = new OpenAI();
 
@@ -54,7 +55,7 @@ async function generateThemeWords(
       messages: [
         {
           role: "system",
-          content: `Generate a list of 10-15 words related to the theme. Words should be in ${theme.language}. Include words of various lengths but no shorter than 3 letters. All the words should be in the target language and the words should not include proper names.`,
+          content: `Generate a list of 10-15 words related to the theme. Words should be in ${theme.language}. Include words of various lengths but no shorter than 3 letters. All the words should be in the target language and the words should not include proper names. Avoid using compoud words (yhdyssana) which are words that consist of multiple valid subwords.`,
         },
         {
           role: "user",
@@ -148,6 +149,18 @@ function findWordCombinations(
   );
 
   return results;
+}
+
+async function filterThemeWords(words: string[], language: "finnish" | "english"): Promise<string[]> {
+  const dictionaryName = language === "finnish" ? "fi-kotus-2024" : null;
+  const dictionary = await loadDictionary(dictionaryName);
+
+  if (!dictionary) {
+    console.log(`Failed to filter words, could not find dictionary with name: ${dictionaryName}`);
+    return words;
+  }
+
+  return words.filter(word => dictionary.has(word.toUpperCase()));
 }
 
 function generateWordCombination(
@@ -258,17 +271,22 @@ export async function generateGameData(
 
   // Generate words based on theme
   const themeWords = await generateThemeWords(theme);
+
+  // TODO: Validate theme words against a dictionary of words
   console.log(`Generated theme words: ${themeWords}`);
 
   if (!themeWords) {
     throw new Error("Failed to generate theme words");
   }
 
+  // Filter theme words down to only words in the specific language
+  const filteredThemeWords = await filterThemeWords(themeWords, theme.language);
+
   // Calculate total grid size (rows * cols)
   const gridSize = rowCount * columnCount; // Assuming 6x5 grid
 
   // Select words that fit the grid
-  const selectedWords = generateWordCombination(themeWords, gridSize);
+  const selectedWords = generateWordCombination(filteredThemeWords, gridSize);
 
   console.log(`Selected words for game:`, selectedWords);
   console.log(

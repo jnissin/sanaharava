@@ -6,4 +6,4 @@ export interface GameData {
     additionalValidWords: string[];
     validWordsDictionaryName: string | null;
     timestamp: number;
-  }
+}

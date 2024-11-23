@@ -1,13 +1,11 @@
-import path from 'path';
-
 import NodeCache from 'node-cache';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
 import { kv } from '@vercel/kv';
 import { GameData } from '@/app/types/game';
 import { analytics } from '@/lib/analytics-service';
 import { generateGameData } from '@/lib/generation/generators';
+import { loadDictionary } from '@/lib/dictionary';
 
 
 // In memory cache structure
@@ -17,36 +15,6 @@ const cache = new NodeCache({
   useClones: false // Prevent cloning of complex objects like Sets
 });
 
-const dictionaryPaths: Record<string, string> = {
-  "fi-kotus-2024": "data/fi-dictionary-kotus-2024.txt"
-};
-
-
-async function loadDictionary(dictionaryName: string | null): Promise<Set<string>> {
-  if (dictionaryName === null) {
-    return new Set<string>();
-  }
-
-  const cached = cache.get<Set<string>>(dictionaryName);
-  if (cached) return cached;
-
-  try {
-    const dictionaryFullPath = path.join(process.cwd(), dictionaryPaths[dictionaryName]);
-    const fileContent = await fs.readFile(dictionaryFullPath, 'utf-8');
-    const dictionary = new Set(
-      fileContent
-        .split('\n')
-        .map(word => word.trim().toUpperCase())
-        .filter(word => word.length >= 2)
-    );
-    cache.set(dictionaryName, dictionary);
-    console.log(`Loaded dictionary ${dictionaryName} from ${dictionaryFullPath} with ${dictionary.size} words`);
-    return dictionary;
-  } catch (error: any) {
-    console.warn(`Failed to load dictionary ${dictionaryName}, available paths: ${dictionaryPaths}:`, error);
-    return new Set<string>();
-  }
-}
 
 async function getGameData(gameId: string | null, rows: number | null, columns: number | null): Promise<GameData | null> {
   if (!gameId) {
@@ -124,7 +92,7 @@ export async function POST(request: NextRequest) {
 
   const isSolutionWord = solutionWordsSet.has(word);
   const isAdditionalWord = additionalWordsSet.has(word);
-  const isDictionaryWord = dictionaryWords.has(word);
+  const isDictionaryWord = dictionaryWords ? dictionaryWords.has(word) : true;
   
   const isValid = word.length >= gameData.minValidWordLength && (
     isSolutionWord || isAdditionalWord || isDictionaryWord
@@ -151,7 +119,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ isValid });
 }
 
-// PUT endpoint to check game completion
 export async function PUT(request: NextRequest) {
   const gameId: string | null = request.nextUrl.searchParams.get('gameId');
   const gameData = await getGameData(gameId, null, null);
@@ -171,25 +138,24 @@ export async function PUT(request: NextRequest) {
   }
 
   const solutionWordsSet = new Set(gameData.solutionWords);
-  
-  // Check that all solution words are found
-  const solutionWordsFound = Array.from(solutionWordsSet)
-    .every(word => foundWords.includes(word));
+  const dictionaryWordsSet = await loadDictionary(gameData.validWordsDictionaryName);
 
-  // Check that only solution words are present
-  const onlySolutionWords = foundWords.length === solutionWordsSet.size;
-  
+  // Check that all words are valid
+  const allWordsValid = foundWords.every(word => 
+    solutionWordsSet.has(word) || (dictionaryWordsSet && dictionaryWordsSet.has(word))
+  );
+
   // Check that the number of letters in words matches the grid size
   const gridSize = gameData.grid.length * gameData.grid[0].length;
-  const totalLettersInWords = Array.from(solutionWordsSet)
-    .reduce((sum, word) => sum + word.length, 0);
-  const allLettersUsed = totalLettersInWords === gridSize
+  const totalLettersInWords = foundWords.reduce((sum, word) => sum + word.length, 0);
+  const allLettersUsed = totalLettersInWords === gridSize;
 
-  let isComplete = solutionWordsFound && onlySolutionWords && allLettersUsed;
+  let isComplete = allWordsValid && allLettersUsed;
   
   if (isComplete) {
     analytics.track('game_completed', {
       gameId: gameData.id,
+      foundWords: foundWords.sort().join('-')
     }, '/api/game');
   }
 
