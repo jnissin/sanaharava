@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       | null;
 
     const gameId = new Date().toISOString().split("T")[0];
-    const newGameData = await generateGameData(gameId, language || "finnish");
+    const newGameData = await generateGameData(gameId, language || "finnish", null, null);
 
     // Store game with date as key for direct access
     await kv.set(`game:${gameId}`, newGameData);
