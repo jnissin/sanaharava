@@ -19,5 +19,14 @@ jobs:
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
         run: |
-          url="$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})"
-          vercel alias --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }} set "$url" ${{ vars.PRODUCTION_URL }}
+          # Store current development deployment URL as the prod deployment might overwrite it
+          development_deployment_url=$(vercel alias ls --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }} | grep ${{ vars.DEVELOPMENT_URL }} | awk '{print $1}')
+
+          # Deploy to production
+          production_deployment_url="$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})"
+          vercel alias --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }} set "$production_deployment_url" ${{ vars.PRODUCTION_URL }}
+
+          # Restore development URL if needed
+          if [ ! -z "$development_deployment_url" ]; then
+            vercel alias --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }} set "$development_deployment_url" ${{ vars.DEVELOPMENT_URL }}
+          fi
