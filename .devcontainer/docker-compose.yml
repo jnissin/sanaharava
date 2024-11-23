@@ -1,0 +1,25 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:18-bullseye
+    working_dir: /workspace
+    command: "sleep infinity" # The app container must not exit to function as devcontainer
+    env_file:
+      - ../.env.local
+      #- ../.env.prod
+    depends_on:
+      - redis
+      - serverless-redis-http
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
+  serverless-redis-http:
+    image: hiett/serverless-redis-http:latest
+    ports:
+      - 8079:80
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: example_token
+      SRH_CONNECTION_STRING: 'redis://redis:6379'

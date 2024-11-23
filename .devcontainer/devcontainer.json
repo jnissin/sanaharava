@@ -1,7 +1,11 @@
 {
 	"name": "Next.js Development",
-	"image": "mcr.microsoft.com/devcontainers/javascript-node:18-bullseye",
-	
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"mounts": [
+		"source=${localWorkspaceFolder},target=/workspace,type=bind"
+	],
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -10,8 +14,7 @@
 			]
 		}
 	},
-
 	"forwardPorts": [3000],
 	"postCreateCommand": "npm install && npm install -g vercel",
-	"runArgs": ["--env-file", ".env.local"]
+	"remoteUser": "node"
 }
