@@ -15,12 +15,12 @@ interface WordPaths {
 const GameTitle = () => {
   return (
     <h1 className="game-title">
-      Sanalouhos
+      Sanaharava
     </h1>
   );
 };
 
-const Sanalouhos = () => {
+const Sanaharava = () => {
     const [grid, setGrid] = useState<string[][]>([]);
     const [currentPath, setCurrentPath] = useState<number[][]>([]);
     const [wordPaths, setWordPaths] = useState<WordPaths>({});
@@ -339,4 +339,4 @@ const Sanalouhos = () => {
   );
 };
 
-export default Sanalouhos;
+export default Sanaharava;

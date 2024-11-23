@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sanalouhos',
-  description: 'C09 Sanalouhos',
+  title: 'Sanaharava',
+  description: 'Yhdistä vierekkäiset kirjaimet sanoiksi ja käytä kaikki kirjaimet.',
 }
 
 export default function RootLayout({

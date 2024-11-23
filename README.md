@@ -1,6 +1,6 @@
-# Sanalouhos
+# Sanaharava
 
-A Finnish word-finding puzzle game inspired by [Sanalouhos of Helsingin Sanomat](https://www.hs.fi/pelit/art-2000010229611.html). In the game the player tries to form words by connecting adjacent letters in a grid. Letters can be connected horizontally, vertically, or diagonally. The game is complete once all letters in the grid have been used (exactly once) to form valid words.
+Sanaharava (eng. Word Sweeper) is a Finnish word-finding puzzle game inspired by [Sanalouhos of Helsingin Sanomat](https://www.hs.fi/pelit/art-2000010229611.html). In the game the player tries to form words by connecting adjacent letters in a grid. Letters can be connected horizontally, vertically, or diagonally. The game is complete once all letters in the grid have been used (exactly once) to form valid words.
 
 ## Getting Started
 

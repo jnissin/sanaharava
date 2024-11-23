@@ -1,9 +1,9 @@
-import Sanalouhos from '@/components/Sanalouhos';
+import Sanaharava from '@/components/Sanaharava';
 
 export default function Home() {
   return (
     <main>
-      <Sanalouhos />
+      <Sanaharava />
     </main>
   );
 }
