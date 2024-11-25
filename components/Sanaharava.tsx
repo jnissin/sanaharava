@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 
@@ -28,25 +28,28 @@ const Sanaharava = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [foundWords, setFoundWords] = useState<string[]>([]);
     const [isComplete, setIsComplete] = useState(false);
-    const [congratulationImage, setCongratulationImage] = useState<string | null>(null);
     const [rowCount, setRowCount] = useState<number>(6);
     const [columnCount, setColumnCount] = useState<number>(5);
     const [gameId, setGameId] = useState<string | null>(new Date().toISOString().split("T")[0]);
+    const isInitialMount = useRef(true);
 
   useEffect(() => {
-    fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`)
-      .then(res => res.json())
-      .then(data => {
-        console.log("👋 Terkkuja kaikille nokkelille reversaajille! Tehtiin kuitenkin sillain tää et piilotettiin ratkasut API:n taakse 😉");
-        setGrid(data.grid);
-        console.log(data);
-        setGameId(data.id);
-        setIsLoading(false);
-        // Check completion if there are any found words
-        if (foundWords.length > 0) {
-          checkGameCompletion(foundWords);
-        }
-      });
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log("👋 Terkkuja kaikille nokkelille reversaajille! Tehtiin kuitenkin sillain tää et piilotettiin ratkasut API:n taakse 😉");
+          setGrid(data.grid);
+          console.log(data);
+          setGameId(data.id);
+          setIsLoading(false);
+          // Check completion if there are any found words
+          if (foundWords.length > 0) {
+            checkGameCompletion(foundWords);
+          }
+        });
+    }
   }, []);
 
   const isAdjacent = (cell1: number[], cell2: number[]) => {
@@ -125,11 +128,10 @@ const Sanaharava = () => {
         body: JSON.stringify({ foundWords: words })
       });
       
-      const { isComplete, congratulationImage: congratulationImage } = await response.json();
+      const { isComplete } = await response.json();
       
       if (isComplete) {
         setIsComplete(isComplete);
-        setCongratulationImage(congratulationImage);
       }
     } catch (error) {
       console.error('Error checking game completion:', error);
@@ -292,13 +294,6 @@ const Sanaharava = () => {
                 {isComplete && (
                   <div className="congratulations-message">
                     <p>Onneksi olkoon! Löysit kaikki sanat! 🎉</p>
-                    <Image 
-                      src={congratulationImage || ''}
-                      alt="Congratulation image"
-                      className="celebration-image"
-                      width={200}
-                      height={200}
-                    />
                   </div>
                 )}
               </div>

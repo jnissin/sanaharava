@@ -161,6 +161,5 @@ export async function PUT(request: NextRequest) {
 
   return NextResponse.json({ 
     isComplete,
-    congratulationImage: isComplete ? '/8d7f3e2c6a9b4.jpg' : null
   });
 }
