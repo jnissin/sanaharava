@@ -247,15 +247,14 @@ function generateWordGrid(
 export async function generateGameData(
   gameId: string,
   language: "finnish" | "english" = "finnish",
-  rowCount: number | null,
-  columnCount: number | null
+  rows: number = 6,
+  cols: number = 5
 ): Promise<GameData> {
-
-  if(!rowCount || !Number.isInteger(rowCount) || rowCount < 6 || rowCount > 8)
-    rowCount = 6;
-  //Enabling column count change UI side must be fixed to support more than 5 columns
-  //if(!columnCount || !Number.isInteger(columnCount) || columnCount < 5 || columnCount > 6)
-    columnCount = 5;
+  // Validate row count is between 6-8 and column count is 5 until
+  // UI supports more
+  rows = Math.max(6, Math.min(8, rows));
+  cols = 5;
+  
   // Generate multiple themes and select one randomly
   const themes = await generateThemes(language);
   if (!themes || themes.length === 0) {
@@ -283,7 +282,7 @@ export async function generateGameData(
   const filteredThemeWords = await filterThemeWords(themeWords, theme.language);
 
   // Calculate total grid size (rows * cols)
-  const gridSize = rowCount * columnCount; // Assuming 6x5 grid
+  const gridSize = rows * cols; // Assuming 6x5 grid
 
   // Select words that fit the grid
   const selectedWords = generateWordCombination(filteredThemeWords, gridSize);
@@ -295,7 +294,7 @@ export async function generateGameData(
   );
 
   const solutionWords = selectedWords.map((word) => word.toUpperCase());
-  const generator = new GameGenerator(new Set(solutionWords), rowCount, columnCount);
+  const generator = new GameGenerator(new Set(solutionWords), rows, cols);
   const grid = generator.generate(); 
   //generator.debugPrintGame();
 

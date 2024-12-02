@@ -197,3 +197,36 @@ body {
   position: relative;
   z-index: 2;
 }
+
+.date-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.date-nav-button {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-nav-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.date-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.date-display {
+  min-width: 100px;
+  text-align: center;
+  font-weight: 500;
+}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import DateSelector from './DateSelector';
 
 interface WordPath {
   path: number[][];
@@ -31,26 +32,55 @@ const Sanaharava = () => {
     const [rowCount, setRowCount] = useState<number>(6);
     const [columnCount, setColumnCount] = useState<number>(5);
     const [gameId, setGameId] = useState<string | null>(new Date().toISOString().split("T")[0]);
+    const [availableDates, setAvailableDates] = useState<string[]>([]);
     const isInitialMount = useRef(true);
 
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`)
+    useEffect(() => {
+      fetch('/api/game/dates')
         .then(res => res.json())
         .then(data => {
-          console.log("👋 Terkkuja kaikille nokkelille reversaajille! Tehtiin kuitenkin sillain tää et piilotettiin ratkasut API:n taakse 😉");
-          setGrid(data.grid);
-          console.log(data);
-          setGameId(data.id);
-          setIsLoading(false);
-          // Check completion if there are any found words
-          if (foundWords.length > 0) {
-            checkGameCompletion(foundWords);
+          if (data.success && data.dates.length > 0) {
+            setAvailableDates(data.dates);
+            // If no gameId is set, use the latest date
+            if (!gameId) {
+              const latestDate = data.dates[0];
+              setGameId(latestDate);
+            }
           }
-        });
-    }
-  }, []);
+        })
+        .catch(error => console.error('Failed to fetch dates:', error));
+    }, []); // Run only once on component mount
+
+    useEffect(() => {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        
+        // Then fetch the game data
+        if (gameId) {
+          fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`)
+            .then(res => res.json())
+            .then(data => {
+              setGrid(data.grid);
+              setGameId(data.id);
+              setIsLoading(false);
+              if (foundWords.length > 0) {
+                checkGameCompletion(foundWords);
+              }
+            });
+        }
+      }
+    }, [gameId]);
+
+  const handleDateChange = (newDate: string) => {
+    setGameId(newDate);
+    setFoundWords([]);
+    setWordPaths({});
+    setCurrentPath([]);
+    setError('');
+    setIsComplete(false);
+    setIsLoading(true);
+    isInitialMount.current = true;
+};
 
   const isAdjacent = (cell1: number[], cell2: number[]) => {
     const [row1, col1] = cell1;
@@ -250,6 +280,11 @@ const Sanaharava = () => {
     <div className="game-outer-container">
       <GameTitle />
       <div className="game-container">
+        <DateSelector 
+          currentDate={gameId || new Date().toISOString().split('T')[0]}
+          onDateChange={handleDateChange}
+          availableDates={availableDates}
+        />
         <div className="game-card">
           <div className="game-grid-container">
             <div className="game-grid" style={{ position: 'relative' }}>

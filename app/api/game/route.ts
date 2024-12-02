@@ -1,79 +1,57 @@
-import NodeCache from 'node-cache';
-
 import { NextRequest, NextResponse } from 'next/server';
-import { kv } from '@vercel/kv';
-import { GameData } from '@/app/types/game';
-import { analytics } from '@/lib/analytics-service';
-import { generateGameData } from '@/lib/generation/generators';
+import { getGame, getLatestGameId } from '@/lib/game';
 import { loadDictionary } from '@/lib/dictionary';
+import { analytics } from '@/lib/analytics-service';
+import { createGame } from '@/lib/game';
 
-
-// In memory cache structure
-const cache = new NodeCache({
-  stdTTL: 24 * 60 * 60, // 24 hours in seconds
-  checkperiod: 600, // Check for expired keys every 10 minutes
-  useClones: false // Prevent cloning of complex objects like Sets
-});
-
-
-async function getGameData(gameId: string | null, rows: number | null, columns: number | null): Promise<GameData | null> {
-  if (!gameId) {
-    const latestGames = await kv.zrange('game_dates', -1, -1);
-    if (!latestGames.length) {
-      console.warn('No games found in the database');
-      return null;
-    }
-    gameId = latestGames[0] as string;
-  }
-
-  const cacheKey = `game:${gameId}`;
-  const cached = cache.get<GameData>(cacheKey);
-  if (cached) return cached;
-
-  const gameData = await kv.get<GameData>(cacheKey);
-  if (gameData) {
-    cache.set(cacheKey, gameData);
-    return gameData;
-  }
-
-  //generate new game
-  const language = undefined; //TODO implement language passing from client
-  
-  gameId = new Date().toISOString().split("T")[0];
-  const newGameData = await generateGameData(gameId, language || "finnish", rows, columns);
-
-  // Store game with date as key for direct access
-  await kv.set(`game:${gameId}`, newGameData);
-  return newGameData;
-}
-
-// GET endpoint to fetch the grid
-//export async function GET(gameId?:string, rows?:number, columns?:number) {
 export async function GET(request: NextRequest) {
-  const gameId: string | null = request.nextUrl.searchParams.get('gameId');
-  const rows: number | null = Number(request.nextUrl.searchParams.get('rows'));
-  const columns: number | null = Number(request.nextUrl.searchParams.get('columns'));
-  //const gameData = await getGameData(undefined, undefined, undefined);
-  const gameData = await getGameData(gameId, rows, columns);
-  if (!gameData) {
+  const gameId = request.nextUrl.searchParams.get('gameId');
+  
+  try {
+    const targetGameId = gameId || await getLatestGameId();
+    if (!targetGameId) {
+      return NextResponse.json(
+        { error: 'No games available' }, 
+        { status: 404 }
+      );
+    }
+
+    let gameData = await getGame(targetGameId);
+    if (!gameData) {
+      console.log(`Game not found for ID ${targetGameId}, attempting to create it`);
+      gameData = await createGame({
+        gameId: targetGameId,
+        language: "finnish" // Default to Finnish for now
+      });
+    }
+
+    return NextResponse.json({ 
+      grid: gameData.grid, 
+      id: gameData.id 
+    });
+  } catch (error) {
     return NextResponse.json(
-      { error: 'No game data available' }, 
-      { status: 404 }
+      { error: `Failed to retrieve game: ${error}` }, 
+      { status: 500 }
     );
   }
-
-  return NextResponse.json({ grid: gameData.grid, id: gameData.id });
 }
-
-
 
 // POST endpoint to verify words
 export async function POST(request: NextRequest) {
   const gameId: string | null = request.nextUrl.searchParams.get('gameId');
-  const gameData = await getGameData(gameId, null, null);
+  
+  if (!gameId) {
+    return NextResponse.json(
+      { error: 'Game ID is required' }, 
+      { status: 400 }
+    );
+  }
+
+  const gameData = await getGame(gameId);
   if (!gameData) {
     return NextResponse.json(
-      { error: 'No game data available' }, 
+      { error: `No game data available for game ID: ${gameId}` }, 
       { status: 404 }
     );
   }
@@ -121,10 +99,19 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const gameId: string | null = request.nextUrl.searchParams.get('gameId');
-  const gameData = await getGameData(gameId, null, null);
+  
+  if (!gameId) {
+    return NextResponse.json(
+      { error: 'Game ID is required' }, 
+      { status: 400 }
+    );
+  }
+
+  const gameData = await getGame(gameId);
+
   if (!gameData) {
     return NextResponse.json(
-      { error: 'No game data available' }, 
+      { error: `No game data available for game ID: ${gameId}` }, 
       { status: 404 }
     );
   }
