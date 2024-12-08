@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle } from 'lucide-react';
-import Image from 'next/image';
 import DateSelector from './DateSelector';
 
 interface WordPath {
@@ -36,39 +35,43 @@ const Sanaharava = () => {
     const isInitialMount = useRef(true);
 
     useEffect(() => {
-      fetch('/api/game/dates')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.dates.length > 0) {
-            setAvailableDates(data.dates);
-            // If no gameId is set, use the latest date
-            if (!gameId) {
-              const latestDate = data.dates[0];
-              setGameId(latestDate);
-            }
-          }
-        })
-        .catch(error => console.error('Failed to fetch dates:', error));
-    }, []); // Run only once on component mount
+      const loadGameData = async () => {
+        if (isInitialMount.current) {
+          isInitialMount.current = false;
+          setIsLoading(true);
 
-    useEffect(() => {
-      if (isInitialMount.current) {
-        isInitialMount.current = false;
-        
-        // Then fetch the game data
-        if (gameId) {
-          fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`)
-            .then(res => res.json())
-            .then(data => {
-              setGrid(data.grid);
-              setGameId(data.id);
-              setIsLoading(false);
-              if (foundWords.length > 0) {
-                checkGameCompletion(foundWords);
+          try {
+            // First, try to get the game data which will generate a new game if needed
+            const gameResponse = await fetch(`/api/game?gameId=${gameId}&rows=${rowCount}&columns=${columnCount}`);
+            const gameData = await gameResponse.json();
+            
+            // Then fetch the dates (which will now include any newly generated game)
+            const datesResponse = await fetch('/api/game/dates');
+            const datesData = await datesResponse.json();
+            if (datesData.success && datesData.dates.length > 0) {
+              setAvailableDates(datesData.dates);
+              // If no gameId is set, use the latest date
+              if (!gameId) {
+                const latestDate = datesData.dates[0];
+                setGameId(latestDate);
               }
-            });
+            }
+
+            setGrid(gameData.grid);
+            setGameId(gameData.id);
+            
+            if (foundWords.length > 0) {
+              checkGameCompletion(foundWords);
+            }
+          } catch (error) {
+            console.error('Failed to load game data:', error);
+          } finally {
+            setIsLoading(false);
+          }
         }
-      }
+      };
+
+      loadGameData();
     }, [gameId]);
 
   const handleDateChange = (newDate: string) => {

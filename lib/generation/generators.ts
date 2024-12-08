@@ -167,14 +167,14 @@ function generateWordCombination(
   themeWords: string[],
   gridSize: number
 ): string[] {
-  // Filter out words that are too long for the grid
-  const validWords = themeWords.filter((word) => word.length <= gridSize);
+  // Deduplicate words and filter out words that are too long for the grid
+  const validWords = Array.from(new Set(themeWords)).filter((word) => word.length <= gridSize);
 
   // Find all possible combinations
   const combinations = findWordCombinations(validWords, gridSize);
 
   if (combinations.length === 0) {
-    throw new Error("No valid word combinations found for the grid size");
+    throw new Error(`No valid word combinations found for the grid size: ${gridSize}, words: ${themeWords}`);
   }
 
   // Sort combinations by difficulty score
