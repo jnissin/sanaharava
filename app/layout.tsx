@@ -6,7 +6,16 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Sanaharava',
-  description: 'Yhdistä vierekkäiset kirjaimet sanoiksi ja käytä kaikki kirjaimet.',
+  description: 'Sanaharava on suomalainen sanapeli, jossa tavoitteena on yhdistää vierekkäiset kirjaimet sanoiksi ja käyttää kaikki kirjaimet.',
+  keywords: ['sanaharava', 'sanalouhos', 'sanapeli', 'suomalainen sanapeli', 'sanaristikko'],
+  robots: 'index,follow',
+  openGraph: {
+    title: 'Sanaharava',
+    description: 'Sanaharava on suomalainen sanapeli, jossa tavoitteena on yhdistää vierekkäiset kirjaimet sanoiksi ja käyttää kaikki kirjaimet.',
+    url: 'https://sanaharava.fi',
+    siteName: 'Sanaharava',
+    locale: 'fi_FI'
+  }
 }
 
 export default function RootLayout({
