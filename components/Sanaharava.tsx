@@ -96,19 +96,27 @@ const Sanaharava = () => {
   const handleCellClick = (row: number, col: number) => {
     setError('');
     
-    if (currentPath.length > 0 && 
-        currentPath[currentPath.length - 1][0] === row && 
-        currentPath[currentPath.length - 1][1] === col) {
-      setCurrentPath(prev => prev.slice(0, -1));
-      return;
-    }
-
-    const isUsedInFoundWord = Object.values(wordPaths).some(({ path }) =>
+    // Check if the clicked cell is part of a found word
+    const foundWord = Object.entries(wordPaths).find(([_, { path }]) =>
       path.some(([r, c]) => r === row && c === col)
     );
-
-    if (isUsedInFoundWord) return;
-
+  
+    // If it's part of a found word, remove that word
+    if (foundWord) {
+      const [wordToRemove] = foundWord;
+      handleRemoveWord(wordToRemove);
+      return;
+    }
+    
+    // Check if the clicked cell is in the current path
+    const indexInCurrentPath = currentPath.findIndex(([r, c]) => r === row && c === col);
+    if (indexInCurrentPath !== -1) {
+      // Keep the path only up to the clicked cell
+      setCurrentPath(prev => prev.slice(0, indexInCurrentPath));
+      return;
+    }
+  
+    // Add new cell to path if it's adjacent to the last cell
     if (currentPath.length === 0 || 
         isAdjacent(currentPath[currentPath.length - 1], [row, col])) {
       if (!currentPath.some(([r, c]) => r === row && c === col)) {
