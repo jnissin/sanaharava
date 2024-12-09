@@ -215,7 +215,6 @@ const Sanaharava = () => {
   };
 
   const renderWordPaths = () => {
-    // Match from .game-cell CSS
     const cellWidth = 50;
     const cellHeight = 50;
     const gap = 8;
@@ -229,7 +228,7 @@ const Sanaharava = () => {
       return (
         <svg
           key={word}
-          className="word-path-overlay"
+          className="word-path-overlay found-word-path"
           style={{
             position: 'absolute',
             top: 0,
@@ -299,22 +298,26 @@ const Sanaharava = () => {
         <div className="game-card">
           <div className="game-grid-container">
             <div className="game-grid" style={{ position: 'relative' }}>
+              <div className="word-paths-container" style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
                 {renderWordPaths()}
                 {renderCurrentPath()}
+              </div>
+              <div className="grid-cells" style={{ position: 'relative', zIndex: 2 }}>
                 {grid.map((row, rowIndex) => (
                   row.map((letter, colIndex) => (
+                    <div className="game-cell-wrapper" key={`${rowIndex}-${colIndex}`}>
                     <button
-                      key={`${rowIndex}-${colIndex}`}
                       className={getCellStyles(rowIndex, colIndex)}
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       type="button"
                     >
-                      {letter}
+                      <span>{letter}</span>
                     </button>
+                  </div>
                   ))
                 ))}
+              </div>
             </div>
-
             <div className="game-controls">
               <div className="flex-col gap-2">
                 <div className="word-input">

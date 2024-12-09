@@ -45,31 +45,77 @@ body {
 .game-grid {
   @apply grid mb-6;
   grid-template-columns: repeat(5, 50px);
-  gap: 8px; /* Gap between cells */
-  width: 282px; /* (50px * 5) + (8px * 4) for gaps */
-  min-height: 340px; /* (50px * 6) + (8px * 5) for gaps */
+  gap: 8px;
+  width: 282px;
+  min-height: 340px;
   margin: 0 auto;
+  position: relative;
+}
+
+.grid-cells {
+  display: grid;
+  grid-template-columns: repeat(5, 50px);
+  gap: 8px;
+}
+
+.game-cell-wrapper {
+  @apply transition-all duration-200 transform hover:scale-105;
+  width: 50px;
+  height: 50px;
+  position: relative;
 }
 
 .game-cell {
   @apply flex items-center justify-center 
     cursor-pointer text-lg font-medium rounded-lg 
-    transition-all duration-200 transform hover:scale-105 
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
-  width: 50px;
-  height: 50px;
-  background-color: rgb(31 41 55);
-  color: rgb(209 213 219);
+    focus:outline-none;
+  position: absolute;
+  inset: 0;
 }
 
-.game-cell.found-word {
-  background-color: rgb(34 197 94);
-  color: white;
+.game-cell span {
+  position: relative;
+  z-index: 2;
 }
 
 .game-cell.current-path {
+  background-color: transparent;
+}
+
+.game-cell.current-path::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
   background-color: rgb(59 130 246);
-  color: white;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.word-paths-container,
+.word-path-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.word-paths-container {
+  z-index: 0;
+}
+
+.word-path-overlay {
+  z-index: 2;
+}
+
+.word-path-overlay polyline {
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.word-path-overlay.found-word-path polyline {
+  stroke: rgb(34 197 94);
+  stroke-width: 32px;
+  opacity: 0.8;
 }
 
 .game-controls {
@@ -187,15 +233,6 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-.word-path-overlay {
-  z-index: 1;
-}
-
-.game-cell {
-  position: relative;
-  z-index: 2;
 }
 
 .date-selector {
