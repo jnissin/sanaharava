@@ -34,6 +34,9 @@ npx tsc --noEmit <file>        # Type check single file
 - `lib/generation/generators.ts` - AI game generation logic
 - `app/api/game/route.ts` - Game API endpoints
 - `lib/game.ts` - Game CRUD operations
+- `lib/player-auth.ts` - Player registration and authentication
+- `lib/score-manager.ts` - Highscore calculation and submission
+- `lib/firebase.ts` - Firebase Realtime Database client
 
 ## Project Overview
 
@@ -46,6 +49,9 @@ npx tsc --noEmit <file>        # Type check single file
 - Date-based game navigation
 - Redis caching for game data
 - Umami analytics integration
+- Real-time highscore leaderboard (Firebase Realtime Database)
+- Simple token-based player authentication
+- Multi-device support via player tokens
 
 ## Technology Stack
 
@@ -55,7 +61,8 @@ npx tsc --noEmit <file>        # Type check single file
 - **UI Components:** React 18, lucide-react icons
 - **Backend/API:** Next.js API Routes
 - **AI:** OpenAI GPT-4 (gpt-4o-2024-08-06) with structured outputs (Zod schemas)
-- **Database:** Upstash Redis (serverless)
+- **Database:** Upstash Redis (serverless) for game data
+- **Real-time Database:** Firebase Realtime Database for highscores
 - **Caching:** node-cache (in-memory)
 - **Analytics:** Umami (cloud.umami.is)
 - **Deployment:** Vercel
@@ -105,6 +112,16 @@ The following environment variables are required (stored in `.env.local`, not co
 - `UPSTASH_REDIS_REST_URL` - Upstash Redis URL
 - `UPSTASH_REDIS_REST_TOKEN` - Upstash Redis authentication token
 - `CRON_SECRET` - Secret token for protecting the `/api/generate` cron endpoint (production only)
+- `NEXT_PUBLIC_FIREBASE_API_KEY` - Firebase API key
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` - Firebase auth domain
+- `NEXT_PUBLIC_FIREBASE_DATABASE_URL` - Firebase Realtime Database URL
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID` - Firebase project ID
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` - Firebase storage bucket
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` - Firebase messaging sender ID
+- `NEXT_PUBLIC_FIREBASE_APP_ID` - Firebase app ID
+- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` - Firebase measurement ID (optional)
+
+**Note:** Firebase variables are prefixed with `NEXT_PUBLIC_` as they are used in client-side code.
 
 ## Project Structure
 
@@ -127,11 +144,17 @@ The following environment variables are required (stored in `.env.local`, not co
 │   └── sitemap.ts               # sitemap.xml generation
 ├── components/                   # React components
 │   ├── Sanaharava.tsx           # Main game component (client-side)
-│   └── DateSelector.tsx         # Date navigation component
+│   ├── DateSelector.tsx         # Date navigation component
+│   ├── PlayerAuth.tsx           # Player registration/login modal
+│   ├── PlayerInfo.tsx           # Inline player info with token copy
+│   └── HighscorePanel.tsx       # Real-time highscore leaderboard
 ├── lib/                         # Utility libraries
 │   ├── game.ts                  # Game CRUD operations (Redis)
 │   ├── cache.ts                 # In-memory caching (node-cache)
 │   ├── redis.ts                 # Upstash Redis client
+│   ├── firebase.ts              # Firebase Realtime Database client
+│   ├── player-auth.ts           # Player registration and authentication
+│   ├── score-manager.ts         # Highscore calculation and submission
 │   ├── dictionary.ts            # Finnish dictionary loader
 │   ├── analytics-service.ts     # Analytics abstraction layer
 │   ├── umami-analytics.ts       # Umami implementation
@@ -207,9 +230,16 @@ The game generation happens in `/lib/generation/generators.ts`:
   - `game:{gameId}` - GameData object
   - `game_dates` - Sorted set (Z-set) of game IDs by timestamp
   
+- **Firebase Realtime Database:**
+  - `/games/{gameId}/scores/{playerId}` - Player scores for each game
+  - `/players/{playerId}` - Player authentication data
+  
 - **In-Memory Cache (node-cache):**
   - `gameCache` - Caches GameData (24hr TTL), key: `game:${gameId}`
   - `dictionaryCache` - Caches loaded dictionaries (7 day TTL), key: `dictionary:${dictionaryName}`
+
+- **LocalStorage (Browser):**
+  - `sanaharava_player` - Player data for auto-login (playerId, playerName, token)
 
 ## Build and Deployment
 
@@ -346,6 +376,55 @@ Tracked via `analytics-service.ts`:
 - Found word paths: White, 50% opacity, 3px stroke
 - Coordinates calculated from cell size (50px) + gap (8px)
 - SVG overlays positioned absolutely with `pointer-events: none`
+
+### 8. Highscore System (Firebase Realtime Database)
+
+#### Architecture
+- **Client-side Firebase SDK**: Direct browser connection to Firebase (bypasses Vercel API limits)
+- **Real-time updates**: WebSocket connection provides instant score synchronization
+- **Token-based auth**: Simple UUID tokens stored in localStorage
+
+#### Player Authentication (`lib/player-auth.ts`)
+- **Registration**: Player name + auto-generated token (UUID)
+- **Name uniqueness**: Query Firebase by `nameLower` field (case-insensitive)
+- **Token storage**: localStorage for persistence, hashed in Firebase
+- **No email/password**: Designed for casual friend competitions
+
+#### Score Tracking (`lib/score-manager.ts`)
+- **Percentage calculation**: `(total letters in found words / grid size) × 100`
+- **Start time**: Recorded on first score submission (first word found)
+- **Completion time**: Locked when player reaches 100%
+- **Score locking**: Once 100% reached, no further Firebase updates (local play continues)
+- **Elapsed time**: `completionTime - startTime` used for ranking
+
+#### Firebase Data Structure
+```
+/games/{gameId}/scores/{playerId}
+  - playerId: string
+  - playerName: string
+  - percentage: number (0-100)
+  - startTime: number (timestamp of first word found)
+  - completionTime: number | null (locked at 100%)
+  - lastUpdated: number
+  - foundWords: string[]
+
+/players/{playerId}
+  - name: string
+  - nameLower: string (for case-insensitive queries)
+  - tokenHash: string
+  - createdAt: number
+```
+
+#### Highscore Sorting Logic
+1. **Primary**: Percentage (descending) - higher is better
+2. **Secondary**: Elapsed time (ascending) - faster completion wins
+3. **Tertiary**: Last updated (ascending) - who reached percentage first
+
+#### Key Design Decisions
+- **Score locking**: Prevents time manipulation by re-completing
+- **Local exploration**: Players can experiment after 100% without penalty
+- **Start time tracking**: Enables accurate elapsed time calculation
+- **Real-time sync**: All players see updates instantly without polling
 
 ## Safety and Permissions
 
