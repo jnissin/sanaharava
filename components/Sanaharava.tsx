@@ -1,8 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, User } from 'lucide-react';
 import DateSelector from './DateSelector';
+import PlayerAuth from './PlayerAuth';
+import PlayerInfo from './PlayerInfo';
+import HighscorePanel from './HighscorePanel';
+import { getLocalPlayer, isPlayerRegistered } from '@/lib/player-auth';
+import { submitScore } from '@/lib/score-manager';
+import type { PlayerData } from '@/lib/player-auth';
 
 interface WordPath {
   path: number[][];
@@ -32,7 +38,19 @@ const Sanaharava = () => {
     const [columnCount, setColumnCount] = useState<number>(5);
     const [gameId, setGameId] = useState<string | null>(new Date().toISOString().split("T")[0]);
     const [availableDates, setAvailableDates] = useState<string[]>([]);
+    const [player, setPlayer] = useState<PlayerData | null>(null);
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [highscorePanelOpen, setHighscorePanelOpen] = useState(false);
     const isInitialMount = useRef(true);
+    const hasLoadedState = useRef(false);
+
+    // Load player from localStorage on mount
+    useEffect(() => {
+      const localPlayer = getLocalPlayer();
+      if (localPlayer) {
+        setPlayer(localPlayer);
+      }
+    }, []);
 
     useEffect(() => {
       const loadGameData = async () => {
@@ -74,6 +92,61 @@ const Sanaharava = () => {
       loadGameData();
     }, [gameId]);
 
+  // Submit score to Firebase whenever found words change
+  useEffect(() => {
+    const submitPlayerScore = async () => {
+      // Only submit if player is logged in AND has found at least one word
+      if (player && gameId && grid.length > 0 && foundWords.length > 0) {
+        const gridSize = rowCount * columnCount;
+        try {
+          await submitScore(gameId, player, foundWords, gridSize);
+        } catch (error) {
+          console.error('Failed to submit score:', error);
+        }
+      }
+    };
+
+    submitPlayerScore();
+  }, [foundWords, player, gameId, grid, rowCount, columnCount]);
+
+  // Save game state to localStorage whenever it changes (but not on initial load)
+  useEffect(() => {
+    // Only save after we've loaded the initial state
+    if (gameId && grid.length > 0 && hasLoadedState.current) {
+      if (foundWords.length > 0) {
+        // Save current game state
+        const gameState = {
+          gameId,
+          foundWords,
+          wordPaths,
+          isComplete
+        };
+        localStorage.setItem(`sanaharava_game_${gameId}`, JSON.stringify(gameState));
+      } else {
+        // If no words found, clear saved state (user removed all words)
+        localStorage.removeItem(`sanaharava_game_${gameId}`);
+      }
+    }
+  }, [gameId, foundWords, wordPaths, isComplete, grid]);
+
+  // Load game state from localStorage on mount
+  useEffect(() => {
+    if (gameId && grid.length > 0 && !hasLoadedState.current) {
+      const savedState = localStorage.getItem(`sanaharava_game_${gameId}`);
+      if (savedState) {
+        try {
+          const { foundWords: savedWords, wordPaths: savedPaths, isComplete: savedComplete } = JSON.parse(savedState);
+          setFoundWords(savedWords);
+          setWordPaths(savedPaths);
+          setIsComplete(savedComplete);
+        } catch (error) {
+          console.error('Failed to load saved game state:', error);
+        }
+      }
+      hasLoadedState.current = true;
+    }
+  }, [gameId, grid]);
+
   const handleDateChange = (newDate: string) => {
     setGameId(newDate);
     setFoundWords([]);
@@ -83,7 +156,17 @@ const Sanaharava = () => {
     setIsComplete(false);
     setIsLoading(true);
     isInitialMount.current = true;
-};
+    hasLoadedState.current = false; // Reset so new game can load its state
+  };
+
+  const handlePlayerAuthSuccess = (playerData: PlayerData) => {
+    setPlayer(playerData);
+    setShowAuthModal(false);
+  };
+
+  const handlePlayerLogout = () => {
+    setPlayer(null);
+  };
 
   const isAdjacent = (cell1: number[], cell2: number[]) => {
     const [row1, col1] = cell1;
@@ -289,12 +372,41 @@ const Sanaharava = () => {
   return (
     <div className="game-outer-container">
       <GameTitle />
-      <div className="game-container">
-        <DateSelector 
-          currentDate={gameId || new Date().toISOString().split('T')[0]}
-          onDateChange={handleDateChange}
-          availableDates={availableDates}
+      
+      {/* Player Auth Modal */}
+      {showAuthModal && (
+        <PlayerAuth
+          onSuccess={handlePlayerAuthSuccess}
+          onClose={() => setShowAuthModal(false)}
         />
+      )}
+
+      <div className="game-container">
+        {/* Header with Date Selector and Player Info */}
+        <div className="flex flex-col gap-4 mb-4">
+          <DateSelector 
+            currentDate={gameId || new Date().toISOString().split('T')[0]}
+            onDateChange={handleDateChange}
+            availableDates={availableDates}
+          />
+          
+          {/* Player Info or Login Button */}
+          <div className="flex justify-center">
+            {player ? (
+              <PlayerInfo onLogout={handlePlayerLogout} />
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span>Kirjaudu kilpailemaan</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Main Game Card */}
         <div className="game-card">
           <div className="game-grid-container">
             <div className="game-grid" style={{ position: 'relative' }}>
@@ -378,6 +490,18 @@ const Sanaharava = () => {
             </div>
           </div>
         </div>
+
+        {/* Highscore Panel - Below the game */}
+        {gameId && (
+          <div className="mt-4">
+            <HighscorePanel
+              gameId={gameId}
+              currentPlayer={player}
+              isOpen={highscorePanelOpen}
+              onToggle={() => setHighscorePanelOpen(!highscorePanelOpen)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

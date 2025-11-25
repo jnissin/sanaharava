@@ -26,6 +26,16 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
+// Debug: Check if Firebase config is loaded
+if (typeof window !== 'undefined') {
+  console.log('Firebase Config Check:', {
+    hasApiKey: !!firebaseConfig.apiKey,
+    hasDatabase: !!firebaseConfig.databaseURL,
+    hasProjectId: !!firebaseConfig.projectId,
+    databaseURL: firebaseConfig.databaseURL
+  });
+}
+
 /**
  * Initialize Firebase App
  * 

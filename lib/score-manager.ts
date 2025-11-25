@@ -158,7 +158,13 @@ export function listenToHighscores(
     callback(highscores);
   };
 
-  onValue(scoresRef, handleValue);
+  const handleError = (error: any) => {
+    console.error('Firebase listener error:', error);
+    // Call with empty array on error so UI shows "no results" instead of stuck loading
+    callback([]);
+  };
+
+  onValue(scoresRef, handleValue, handleError);
 
   // Return unsubscribe function
   return () => off(scoresRef, 'value', handleValue);

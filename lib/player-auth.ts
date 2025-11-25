@@ -79,12 +79,20 @@ export async function registerPlayer(name: string): Promise<PlayerData | null> {
 
   // Save to Firebase
   const playerRef = ref(database, `players/${playerId}`);
-  await set(playerRef, {
-    name: trimmedName,
-    nameLower: trimmedName.toLowerCase(),
-    tokenHash,
-    createdAt: Date.now()
-  });
+  try {
+    await set(playerRef, {
+      name: trimmedName,
+      nameLower: trimmedName.toLowerCase(),
+      tokenHash,
+      createdAt: Date.now()
+    });
+    console.log('✅ Successfully saved player to Firebase');
+  } catch (firebaseError: any) {
+    console.error('❌ Firebase write error:', firebaseError);
+    console.error('Error code:', firebaseError.code);
+    console.error('Error message:', firebaseError.message);
+    throw firebaseError;
+  }
 
   // Save to localStorage
   const playerData: PlayerData = {
@@ -99,36 +107,41 @@ export async function registerPlayer(name: string): Promise<PlayerData | null> {
 }
 
 /**
- * Login with existing name and token
+ * Login with token only
  * Returns player data if valid, null otherwise
  */
-export async function loginPlayer(name: string, token: string): Promise<PlayerData | null> {
-  const normalizedName = name.trim().toLowerCase();
+export async function loginPlayer(token: string): Promise<PlayerData | null> {
   const tokenHash = simpleHash(token);
 
-  // Find player by name
+  // Query all players to find matching token
   const playersRef = ref(database, 'players');
-  const nameQuery = query(playersRef, orderByChild('nameLower'), equalTo(normalizedName));
-  const snapshot = await get(nameQuery);
+  const snapshot = await get(playersRef);
 
   if (!snapshot.exists()) {
     return null;
   }
 
-  // Get the first (and should be only) match
+  // Search for player with matching tokenHash
   const players = snapshot.val();
-  const playerId = Object.keys(players)[0];
-  const player = players[playerId];
+  let matchedPlayerId: string | null = null;
+  let matchedPlayer: any = null;
 
-  // Verify token
-  if (player.tokenHash !== tokenHash) {
+  for (const [playerId, player] of Object.entries(players)) {
+    if ((player as any).tokenHash === tokenHash) {
+      matchedPlayerId = playerId;
+      matchedPlayer = player;
+      break;
+    }
+  }
+
+  if (!matchedPlayerId || !matchedPlayer) {
     return null;
   }
 
   // Save to localStorage
   const playerData: PlayerData = {
-    playerId,
-    playerName: player.name,
+    playerId: matchedPlayerId,
+    playerName: matchedPlayer.name,
     token
   };
   
