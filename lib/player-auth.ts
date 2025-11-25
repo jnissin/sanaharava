@@ -23,17 +23,69 @@ export interface PlayerData {
 const STORAGE_KEY = 'sanaharava_player';
 
 /**
- * Generate a simple hash from a string
- * This is NOT cryptographically secure, but sufficient for our casual use case
+ * Generate a cryptographically secure hash using PBKDF2
+ * This is proper password hashing using the Web Crypto API
+ * 
+ * @param token - The token to hash
+ * @param salt - Optional salt (generated if not provided)
+ * @returns Object with hash and salt in hex format
  */
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+async function secureHash(token: string, salt?: string): Promise<{ hash: string; salt: string }> {
+  const enc = new TextEncoder();
+  
+  // Generate or use provided salt
+  const saltBytes = salt 
+    ? hexToBytes(salt)
+    : crypto.getRandomValues(new Uint8Array(16));
+  
+  // Import the token as a key
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(token),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+  
+  // Derive bits using PBKDF2
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: saltBytes,
+      iterations: 100000, // High iteration count for security
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256 // Output length in bits
+  );
+  
+  // Convert to hex
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  const saltArray = Array.from(saltBytes);
+  const saltHex = saltArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return { hash: hashHex, salt: saltHex };
+}
+
+/**
+ * Helper to convert hex string to bytes
+ */
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
   }
-  return Math.abs(hash).toString(36);
+  return bytes;
+}
+
+/**
+ * Verify a token against a stored hash
+ */
+async function verifyToken(token: string, storedHash: string, storedSalt: string): Promise<boolean> {
+  const { hash } = await secureHash(token, storedSalt);
+  return hash === storedHash;
 }
 
 /**
@@ -75,15 +127,18 @@ export async function registerPlayer(name: string): Promise<PlayerData | null> {
   // Generate unique player ID and token
   const playerId = crypto.randomUUID();
   const token = crypto.randomUUID();
-  const tokenHash = simpleHash(token);
+  
+  // Generate secure hash with salt
+  const { hash: tokenHash, salt } = await secureHash(token);
 
-  // Save to Firebase
+  // Save to Firebase (only hash and salt, never the token!)
   const playerRef = ref(database, `players/${playerId}`);
   try {
     await set(playerRef, {
       name: trimmedName,
       nameLower: trimmedName.toLowerCase(),
       tokenHash,
+      salt, // Store salt so we can verify later
       createdAt: Date.now()
     });
     console.log('✅ Successfully saved player to Firebase');
@@ -111,8 +166,6 @@ export async function registerPlayer(name: string): Promise<PlayerData | null> {
  * Returns player data if valid, null otherwise
  */
 export async function loginPlayer(token: string): Promise<PlayerData | null> {
-  const tokenHash = simpleHash(token);
-
   // Query all players to find matching token
   const playersRef = ref(database, 'players');
   const snapshot = await get(playersRef);
@@ -126,8 +179,12 @@ export async function loginPlayer(token: string): Promise<PlayerData | null> {
   let matchedPlayerId: string | null = null;
   let matchedPlayer: any = null;
 
+  // Check each player's token hash
   for (const [playerId, player] of Object.entries(players)) {
-    if ((player as any).tokenHash === tokenHash) {
+    const p = player as any;
+    // Verify token against stored hash and salt
+    const isValid = await verifyToken(token, p.tokenHash, p.salt);
+    if (isValid) {
       matchedPlayerId = playerId;
       matchedPlayer = player;
       break;
@@ -138,7 +195,7 @@ export async function loginPlayer(token: string): Promise<PlayerData | null> {
     return null;
   }
 
-  // Save to localStorage
+  // Save to localStorage (plaintext token stored on user's device only)
   const playerData: PlayerData = {
     playerId: matchedPlayerId,
     playerName: matchedPlayer.name,
