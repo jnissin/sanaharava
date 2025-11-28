@@ -52,12 +52,12 @@ const Sanaharava = () => {
           const { database } = await import('@/lib/firebase');
           const { ref, get } = await import('firebase/database');
           
-          // Attempt to read from a test path
-          const testRef = ref(database, '.info/serverTimeOffset');
+          // Simple connectivity check - try to read from players path
+          const testRef = ref(database, 'players');
           await get(testRef);
           setFirebaseAvailable(true);
         } catch (error) {
-          console.warn('Firebase unavailable, highscore features disabled:', error);
+          console.warn('Firebase unavailable, highscore features disabled');
           setFirebaseAvailable(false);
         }
       };
