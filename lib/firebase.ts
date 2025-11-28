@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Firebase Client Configuration
  * 
@@ -9,6 +11,8 @@
  * - Realtime Database syncs directly with the browser
  * - No need for API routes (bypasses Vercel function limits)
  * - Built-in real-time updates via WebSocket connection
+ * 
+ * Note: 'use client' directive ensures this module only runs in browser
  */
 
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
@@ -28,7 +32,6 @@ const firebaseConfig = {
 
 /**
  * Check if Firebase configuration is available
- * During build time (SSR), environment variables may not be set
  */
 const isFirebaseConfigured = !!(
   firebaseConfig.apiKey &&
@@ -39,34 +42,31 @@ const isFirebaseConfigured = !!(
 /**
  * Initialize Firebase App
  * 
- * Only initializes if config is available (runtime).
- * During build time, this is skipped to prevent errors.
+ * Initializes if config is available.
+ * The 'use client' directive ensures this only runs in the browser.
  */
 let app: FirebaseApp | undefined;
 let database: Database | undefined;
 
 if (isFirebaseConfigured) {
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApps()[0];
+  try {
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApps()[0];
+    }
+    database = getDatabase(app);
+  } catch (error) {
+    console.error('Firebase initialization failed:', error);
   }
-
-  /**
-   * Get Realtime Database instance
-   * 
-   * This is what we'll use to read/write highscores.
-   * All operations happen in real-time - when data changes,
-   * all connected clients receive updates automatically.
-   */
-  database = getDatabase(app);
+} else {
+  console.warn('Firebase configuration incomplete - highscore features will be disabled');
 }
 
 export { database };
 
 /**
- * Export the app instance in case we need it later
- * (e.g., for other Firebase services like Storage or Auth)
+ * Export the app instance
  */
 export default app;
 

@@ -51,7 +51,6 @@ const Sanaharava = () => {
         try {
           const { database } = await import('@/lib/firebase');
           
-          // Check if Firebase was initialized
           if (!database) {
             setFirebaseAvailable(false);
             return;
@@ -64,7 +63,7 @@ const Sanaharava = () => {
           await get(testRef);
           setFirebaseAvailable(true);
         } catch (error) {
-          console.warn('Firebase unavailable, highscore features disabled');
+          console.warn('Firebase unavailable, highscore features disabled:', error);
           setFirebaseAvailable(false);
         }
       };
