@@ -6,6 +6,7 @@ import DateSelector from './DateSelector';
 import PlayerAuth from './PlayerAuth';
 import PlayerInfo from './PlayerInfo';
 import HighscorePanel from './HighscorePanel';
+import InstructionsPanel from './InstructionsPanel';
 import { getLocalPlayer, isPlayerRegistered } from '@/lib/player-auth';
 import { submitScore } from '@/lib/score-manager';
 import type { PlayerData } from '@/lib/player-auth';
@@ -41,6 +42,7 @@ const Sanaharava = () => {
     const [player, setPlayer] = useState<PlayerData | null>(null);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [highscorePanelOpen, setHighscorePanelOpen] = useState(false);
+    const [instructionsPanelOpen, setInstructionsPanelOpen] = useState(false);
     const [firebaseAvailable, setFirebaseAvailable] = useState<boolean>(true);
     const isInitialMount = useRef(true);
     const hasLoadedState = useRef(false);
@@ -497,24 +499,19 @@ const Sanaharava = () => {
                   ))}
                 </div>
               </div>
-              
-              <div className="how-to-play">
-                <p className="section-title">Ohjeet</p>
-                <ul className="instructions-list">
-                  <li>Etsi sanat napauttamalla vierekkäisiä kirjamia.</li>
-                  <li>Voit valita kirjaimia pysty- ja vaakasuunnassa sekä viistoon kulmien suuntaisesti.</li>
-                  <li>Muodosta sana painamalla Yhdistä.</li>
-                  <li>Sanojen minimipituus on 3 merkkiä.</li>
-                  <li>Poista kirjain tai sana napauttamalla sitä uudelleen.</li>
-                  <li>Peli on ratkennut, kun saat kaikki kirjaimet yhdistettyä sanoiksi.</li>
-                  <li>Voit poistaa löydetyn sanan klikkaamalla sitä.</li>
-                </ul>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Highscore Panel - Below the game, only if Firebase available */}
+        {/* Instructions Panel - Below the game */}
+        <div className="mt-4">
+          <InstructionsPanel
+            isOpen={instructionsPanelOpen}
+            onToggle={() => setInstructionsPanelOpen(!instructionsPanelOpen)}
+          />
+        </div>
+
+        {/* Highscore Panel - Below instructions, only if Firebase available */}
         {gameId && firebaseAvailable && (
           <div className="mt-4">
             <HighscorePanel
