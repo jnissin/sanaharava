@@ -34,9 +34,15 @@ async function secureHash(token: string, salt?: string): Promise<{ hash: string;
   const enc = new TextEncoder();
   
   // Generate or use provided salt
-  const saltBytes = salt 
-    ? hexToBytes(salt)
-    : crypto.getRandomValues(new Uint8Array(16));
+  let saltBytes: Uint8Array;
+  if (salt) {
+    saltBytes = hexToBytes(salt);
+  } else {
+    // Create from ArrayBuffer to ensure proper type
+    const buffer = new ArrayBuffer(16);
+    saltBytes = new Uint8Array(buffer);
+    crypto.getRandomValues(saltBytes);
+  }
   
   // Import the token as a key
   const keyMaterial = await crypto.subtle.importKey(
@@ -51,7 +57,7 @@ async function secureHash(token: string, salt?: string): Promise<{ hash: string;
   const hashBuffer = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
-      salt: saltBytes,
+      salt: saltBytes as BufferSource,
       iterations: 100000, // High iteration count for security
       hash: 'SHA-256'
     },
