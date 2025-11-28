@@ -4,6 +4,23 @@
 
 Sanaharava (eng. Wordsweeper) is a Finnish word-finding puzzle game inspired by [Sanalouhos of Helsingin Sanomat](https://www.hs.fi/pelit/art-2000010229611.html). In the game the player tries to form words by connecting adjacent letters in a grid. Letters can be connected horizontally, vertically, or diagonally. The game is complete once all letters in the grid have been used (exactly once) to form valid words.
 
+## Features
+
+- **Daily Puzzles**: New AI-generated word puzzle every day
+- **Real-time Highscores**: Compete with friends and see live score updates
+- **Simple Registration**: Just enter your name to join the leaderboard - no email required
+- **Multi-device Support**: Copy your token to continue playing on another device
+- **Progress Tracking**: Completion percentage and time tracked automatically
+
+### Highscore System
+
+Register with a player name to track your progress on the daily leaderboard. Your score is calculated based on:
+
+- **Percentage**: How many letters you've used (goal: 100%)
+- **Completion Time**: How quickly you solved the puzzle
+
+Once you reach 100%, your completion time is locked - you can still explore alternate solutions without affecting your score. The leaderboard shows the top players, sorted by percentage and completion time.
+
 ## Getting Started
 
 This project uses VSCode devcontainers for development. To get started:
