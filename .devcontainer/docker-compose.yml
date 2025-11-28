@@ -1,6 +1,6 @@
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/javascript-node:18-bullseye
+    image: mcr.microsoft.com/devcontainers/javascript-node:20-bookworm
     working_dir: /workspace
     command: "sleep infinity" # The app container must not exit to function as devcontainer
     env_file:
