@@ -251,10 +251,47 @@ npm run build
 
 ### Deployment to Vercel
 
-- **Automatic Deployments:**
-  - `main` branch → Production
-  - `develop` branch → Preview
-  - `feature/*` branches → No auto-deploy (per vercel.json)
+**Important:** This project uses **GitHub Actions** for deployment to avoid Vercel Pro tier requirements. The Vercel free tier limits git integration to a single developer, so we use manual deployments via GitHub Actions to support multi-developer workflows.
+
+#### GitHub Actions Workflows
+
+Located in `.github/workflows/`:
+
+**`develop.yaml` - Preview Deployment:**
+- Triggers on push to `develop` branch
+- Builds using Vercel CLI
+- Deploys to preview environment
+- Sets custom alias (dev.sanaharava.fi)
+- Environment: Uses **Preview** environment variables from Vercel
+
+**`production.yaml` - Production Deployment:**
+- Triggers on push to `main` branch
+- Builds using Vercel CLI with `--prod` flag
+- Deploys to production environment
+- Sets custom alias (sanaharava.fi)
+- Preserves development alias during deployment
+- Environment: Uses **Production** environment variables from Vercel
+
+**Required GitHub Secrets:**
+- `VERCEL_TOKEN` - Vercel API token
+- `VERCEL_ORG_ID` - Vercel organization ID
+- `VERCEL_PROJECT_ID` - Vercel project ID
+- `VERCEL_SCOPE` - Vercel team/user scope
+
+**Required GitHub Variables:**
+- `DEVELOPMENT_URL` - Dev site URL (e.g., dev.sanaharava.fi)
+- `PRODUCTION_URL` - Prod site URL (e.g., sanaharava.fi)
+
+#### Deployment Process
+
+1. **Push to branch:** `git push origin develop` or `git push origin main`
+2. **GitHub Actions runs:** Workflow installs Vercel CLI, pulls env vars, builds, and deploys
+3. **Vercel builds:** Next.js build runs with environment-specific variables
+4. **Alias set:** Custom domain alias configured automatically
+
+**Note:** GitHub Actions has access to Vercel environment variables via `vercel pull --environment=<preview|production>`.
+
+#### Vercel Configuration
 
 - **Cron Jobs:**
   - Daily game generation: `0 0 * * *` (midnight UTC)
@@ -263,6 +300,11 @@ npm run build
 - **File Tracing:**
   - `data/` directory included in `/api/**/*` function bundles
   - Configured in `next.config.js` → `experimental.outputFileTracingIncludes`
+
+- **Environment Variables:**
+  - Set in Vercel Dashboard → Settings → Environment Variables
+  - Split by environment: **Production** vs **Preview**
+  - Firebase variables use `NEXT_PUBLIC_` prefix (client-side)
 
 ## Code Style and Conventions
 
@@ -383,12 +425,88 @@ Tracked via `analytics-service.ts`:
 - **Client-side Firebase SDK**: Direct browser connection to Firebase (bypasses Vercel API limits)
 - **Real-time updates**: WebSocket connection provides instant score synchronization
 - **Token-based auth**: Simple UUID tokens stored in localStorage
+- **PBKDF2 hashing**: Tokens hashed with 100,000 iterations + unique salt for security
+
+#### Firebase Initialization (`lib/firebase.ts`)
+
+**Critical: Client-Side Only**
+
+Firebase **must** be initialized only in the browser, not during SSR or build time:
+
+```typescript
+'use client';  // ← REQUIRED at top of firebase.ts
+```
+
+**Why:**
+- Next.js modules are evaluated during both SSR and client hydration
+- Firebase Database SDK requires browser APIs (WebSocket, localStorage)
+- Build process pre-renders pages, which would fail with Firebase calls
+- Environment variables must be available at runtime
+
+**Implementation Pattern:**
+```typescript
+// ✅ Correct: Module-level initialization with 'use client'
+'use client';
+let database: Database | undefined;
+if (isFirebaseConfigured) {
+  database = getDatabase(initializeApp(config));
+}
+
+// ❌ Wrong: Lazy initialization without 'use client'
+// This causes SSR to cache undefined database instance
+```
+
+**Checking Availability:**
+- Components check `if (database)` before using Firebase
+- Connection test on mount: `get(ref(database, 'players'))`
+- Graceful degradation: Hide highscore features if unavailable
+
+#### Firebase Security Rules
+
+**Required in Firebase Console → Realtime Database → Rules:**
+
+```json
+{
+  "rules": {
+    "games": {
+      "$gameId": {
+        "scores": {
+          ".read": true,
+          "$playerId": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['playerId', 'playerName', 'percentage', 'startTime', 'lastUpdated', 'foundWords']) && newData.child('percentage').isNumber() && newData.child('percentage').val() >= 0 && newData.child('percentage').val() <= 100"
+          }
+        }
+      }
+    },
+    "players": {
+      ".indexOn": ["nameLower"],
+      ".read": true,
+      "$playerId": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['name', 'nameLower', 'tokenHash', 'salt', 'createdAt'])"
+      }
+    }
+  }
+}
+```
+
+**What these rules do:**
+- Anyone can read scores and players (for leaderboard)
+- Anyone can write their own score
+- Players can only register once (`.write: "!data.exists()"`)
+- Validates required fields and data types
+- Index on `nameLower` for fast name uniqueness checks
+
+**Important:** Without proper rules, connection test fails with "Permission denied"
 
 #### Player Authentication (`lib/player-auth.ts`)
 - **Registration**: Player name + auto-generated token (UUID)
 - **Name uniqueness**: Query Firebase by `nameLower` field (case-insensitive)
-- **Token storage**: localStorage for persistence, hashed in Firebase
+- **Token storage**: localStorage for persistence, hashed in Firebase using PBKDF2
+- **Token hashing**: 100,000 iterations, SHA-256, unique 16-byte salt per user
 - **No email/password**: Designed for casual friend competitions
+- **Login**: Token-only login (iterates through players to verify hash)
 
 #### Score Tracking (`lib/score-manager.ts`)
 - **Percentage calculation**: `(total letters in found words / grid size) × 100`
@@ -411,7 +529,8 @@ Tracked via `analytics-service.ts`:
 /players/{playerId}
   - name: string
   - nameLower: string (for case-insensitive queries)
-  - tokenHash: string
+  - tokenHash: string (PBKDF2 hash with 100k iterations)
+  - salt: string (hex-encoded 16-byte random salt)
   - createdAt: number
 ```
 
@@ -421,10 +540,12 @@ Tracked via `analytics-service.ts`:
 3. **Tertiary**: Last updated (ascending) - who reached percentage first
 
 #### Key Design Decisions
+- **Client-side only**: Firebase SDK runs only in browser (see `'use client'` directive)
 - **Score locking**: Prevents time manipulation by re-completing
 - **Local exploration**: Players can experiment after 100% without penalty
 - **Start time tracking**: Enables accurate elapsed time calculation
 - **Real-time sync**: All players see updates instantly without polling
+- **Graceful degradation**: Game works without Firebase, just no highscores
 
 ## Safety and Permissions
 
@@ -572,6 +693,68 @@ Use Tailwind utilities in JSX. For game-specific styles (`.game-cell`, `.game-gr
 3. Verify `experimental.outputFileTracingIncludes` includes necessary files
 4. Run full build locally before deploying
 
+### Firebase/Highscore Issues
+
+#### "Firebase unavailable, highscore features disabled"
+
+**Possible causes and solutions:**
+
+**1. Build-time initialization error:**
+```
+Error: Can't determine Firebase Database URL during build
+```
+**Solution:** Add `'use client'` directive at top of `lib/firebase.ts`
+- Firebase must only initialize in browser, not during SSR/build
+- Without `'use client'`, Next.js evaluates module during build
+- Module gets cached with `undefined` database instance
+
+**2. Permission denied error:**
+```
+Error: Permission denied at /players or /games/{gameId}/scores
+```
+**Solution:** Update Firebase Realtime Database Rules in Firebase Console
+- Go to Firebase Console → Realtime Database → Rules
+- Ensure `.read: true` for `/players` and `/games/.../scores`
+- Add `.indexOn: ["nameLower"]` for `/players`
+- Click **Publish**
+
+**3. Missing environment variables:**
+```
+Firebase configuration incomplete
+```
+**Solution:** Verify all `NEXT_PUBLIC_FIREBASE_*` variables are set
+- Check `.env.local` for development
+- Check Vercel Dashboard → Settings → Environment Variables for deployments
+- Ensure variables are set for correct environment (Preview vs Production)
+- After adding variables to Vercel, **trigger new deployment**
+
+**4. Dev server not restarted:**
+**Solution:** After modifying `lib/firebase.ts`, restart `npm run dev`
+- Dev server must reload to pick up module changes
+- Especially after adding `'use client'` directive
+
+#### Duplicate Player Entries / Score Resets
+
+**Symptoms:** Page reload creates new player entries or resets scores to 0%
+
+**Causes:**
+1. New `playerId` generated on every refresh instead of using stored one
+2. Score submitted with 0% on mount before state loads
+
+**Solutions:**
+1. Ensure `PlayerAuth` uses returned `playerId` from registration, not generated UUID
+2. Only submit scores if `foundWords.length > 0`
+3. Load player from localStorage on mount before any Firebase operations
+
+#### Game State Lost on Reload
+
+**Symptoms:** `foundWords`, `wordPaths`, `isComplete` reset after page refresh
+
+**Solution:** Implement game state persistence in localStorage
+- Save state in `useEffect` whenever game state changes
+- Load state from localStorage on mount for current `gameId`
+- Use `useRef` flag to prevent race condition between load and save effects
+
 ## Context for AI Assistants
 
 **Assistance Guidelines:**
@@ -600,13 +783,12 @@ Use Tailwind utilities in JSX. For game-specific styles (`.game-cell`, `.game-gr
 
 - Automated tests
 - English language support (partially implemented)
-- Mobile-responsive design
+- Mobile-responsive design improvements
 - Hint system
 - Difficulty levels
-- User accounts and progress tracking
 - Social sharing features
 - Alternative dictionary sources
-- Highscore list
+- Player profiles with historical scores across multiple games
 
 ### Development Tools
 
@@ -626,7 +808,7 @@ Use Tailwind utilities in JSX. For game-specific styles (`.game-cell`, `.game-gr
 
 ---
 
-**Last Updated:** 2024-11-21
+**Last Updated:** 2025-11-28
 
 For questions about this project, refer to README.md for user-facing information or analyze the codebase directly. This AGENTS.md file should be updated when major architectural changes occur.
 
