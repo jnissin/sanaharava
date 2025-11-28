@@ -41,8 +41,29 @@ const Sanaharava = () => {
     const [player, setPlayer] = useState<PlayerData | null>(null);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [highscorePanelOpen, setHighscorePanelOpen] = useState(false);
+    const [firebaseAvailable, setFirebaseAvailable] = useState<boolean>(true);
     const isInitialMount = useRef(true);
     const hasLoadedState = useRef(false);
+
+    // Check Firebase availability on mount
+    useEffect(() => {
+      const checkFirebase = async () => {
+        try {
+          const { database } = await import('@/lib/firebase');
+          const { ref, get } = await import('firebase/database');
+          
+          // Attempt to read from a test path
+          const testRef = ref(database, '.info/serverTimeOffset');
+          await get(testRef);
+          setFirebaseAvailable(true);
+        } catch (error) {
+          console.warn('Firebase unavailable, highscore features disabled:', error);
+          setFirebaseAvailable(false);
+        }
+      };
+      
+      checkFirebase();
+    }, []);
 
     // Load player from localStorage on mount
     useEffect(() => {
@@ -92,29 +113,26 @@ const Sanaharava = () => {
       loadGameData();
     }, [gameId]);
 
-  // Submit score to Firebase whenever found words change
+  // Submit score to Firebase when words change
   useEffect(() => {
     const submitPlayerScore = async () => {
-      // Only submit if player is logged in AND has found at least one word
-      if (player && gameId && grid.length > 0 && foundWords.length > 0) {
+      if (firebaseAvailable && player && gameId && grid.length > 0 && foundWords.length > 0) {
         const gridSize = rowCount * columnCount;
         try {
           await submitScore(gameId, player, foundWords, gridSize);
         } catch (error) {
-          console.error('Failed to submit score:', error);
+          console.error('Score submission failed:', error);
         }
       }
     };
 
     submitPlayerScore();
-  }, [foundWords, player, gameId, grid, rowCount, columnCount]);
+  }, [foundWords, player, gameId, grid, rowCount, columnCount, firebaseAvailable]);
 
-  // Save game state to localStorage whenever it changes (but not on initial load)
+  // Persist game state to localStorage
   useEffect(() => {
-    // Only save after we've loaded the initial state
     if (gameId && grid.length > 0 && hasLoadedState.current) {
       if (foundWords.length > 0) {
-        // Save current game state
         const gameState = {
           gameId,
           foundWords,
@@ -123,7 +141,6 @@ const Sanaharava = () => {
         };
         localStorage.setItem(`sanaharava_game_${gameId}`, JSON.stringify(gameState));
       } else {
-        // If no words found, clear saved state (user removed all words)
         localStorage.removeItem(`sanaharava_game_${gameId}`);
       }
     }
@@ -156,7 +173,7 @@ const Sanaharava = () => {
     setIsComplete(false);
     setIsLoading(true);
     isInitialMount.current = true;
-    hasLoadedState.current = false; // Reset so new game can load its state
+    hasLoadedState.current = false;
   };
 
   const handlePlayerAuthSuccess = (playerData: PlayerData) => {
@@ -291,8 +308,6 @@ const Sanaharava = () => {
       return newPaths;
     });
 
-    // Reset isComplete to false when removing a word
-    // and re-check the completion with updated words
     setIsComplete(false);
     checkGameCompletion(updatedFoundWords);
   };
@@ -390,20 +405,22 @@ const Sanaharava = () => {
             availableDates={availableDates}
           />
           
-          {/* Player Info or Login Button */}
-          <div className="flex justify-center">
-            {player ? (
-              <PlayerInfo onLogout={handlePlayerLogout} />
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <User className="w-4 h-4" />
-                <span>Kirjaudu kilpailemaan</span>
-              </button>
-            )}
-          </div>
+          {/* Player Info or Login Button - Only show if Firebase available */}
+          {firebaseAvailable && (
+            <div className="flex justify-center">
+              {player ? (
+                <PlayerInfo onLogout={handlePlayerLogout} />
+              ) : (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Kirjaudu kilpailemaan</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Main Game Card */}
@@ -491,8 +508,8 @@ const Sanaharava = () => {
           </div>
         </div>
 
-        {/* Highscore Panel - Below the game */}
-        {gameId && (
+        {/* Highscore Panel - Below the game, only if Firebase available */}
+        {gameId && firebaseAvailable && (
           <div className="mt-4">
             <HighscorePanel
               gameId={gameId}

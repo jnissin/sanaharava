@@ -26,20 +26,10 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Debug: Check if Firebase config is loaded
-if (typeof window !== 'undefined') {
-  console.log('Firebase Config Check:', {
-    hasApiKey: !!firebaseConfig.apiKey,
-    hasDatabase: !!firebaseConfig.databaseURL,
-    hasProjectId: !!firebaseConfig.projectId,
-    databaseURL: firebaseConfig.databaseURL
-  });
-}
-
 /**
  * Initialize Firebase App
  * 
- * We check if an app already exists to prevent re-initialization
+ * Checks if an app already exists to prevent re-initialization
  * during hot-reloading in development.
  */
 let app: FirebaseApp;

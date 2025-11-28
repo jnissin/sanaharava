@@ -138,14 +138,14 @@ export async function registerPlayer(name: string): Promise<PlayerData | null> {
       name: trimmedName,
       nameLower: trimmedName.toLowerCase(),
       tokenHash,
-      salt, // Store salt so we can verify later
+      salt,
       createdAt: Date.now()
     });
-    console.log('✅ Successfully saved player to Firebase');
   } catch (firebaseError: any) {
-    console.error('❌ Firebase write error:', firebaseError);
-    console.error('Error code:', firebaseError.code);
-    console.error('Error message:', firebaseError.message);
+    console.error('Player registration failed:', {
+      code: firebaseError.code,
+      message: firebaseError.message
+    });
     throw firebaseError;
   }
 
