@@ -50,6 +50,13 @@ const Sanaharava = () => {
       const checkFirebase = async () => {
         try {
           const { database } = await import('@/lib/firebase');
+          
+          // Check if Firebase was initialized
+          if (!database) {
+            setFirebaseAvailable(false);
+            return;
+          }
+
           const { ref, get } = await import('firebase/database');
           
           // Simple connectivity check - try to read from players path

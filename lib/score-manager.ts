@@ -52,6 +52,10 @@ export async function submitScore(
   foundWords: string[],
   gridSize: number
 ): Promise<void> {
+  if (!database) {
+    throw new Error('Firebase not initialized');
+  }
+
   const scoreRef = ref(database, `games/${gameId}/scores/${player.playerId}`);
   
   // Read current score to check completion status
@@ -109,6 +113,12 @@ export function listenToHighscores(
   limit: number = 10,
   callback: (highscores: HighscoreEntry[]) => void
 ): () => void {
+  if (!database) {
+    console.warn('Firebase not initialized, returning empty highscores');
+    callback([]);
+    return () => {}; // Return no-op unsubscribe
+  }
+
   const scoresRef = ref(database, `games/${gameId}/scores`);
 
   const handleValue = (snapshot: any) => {
@@ -174,6 +184,10 @@ export function listenToHighscores(
  * Get a single player's score for a game
  */
 export async function getPlayerScore(gameId: string, playerId: string): Promise<Score | null> {
+  if (!database) {
+    return null;
+  }
+
   const scoreRef = ref(database, `games/${gameId}/scores/${playerId}`);
   
   return new Promise((resolve) => {

@@ -27,27 +27,42 @@ const firebaseConfig = {
 };
 
 /**
- * Initialize Firebase App
- * 
- * Checks if an app already exists to prevent re-initialization
- * during hot-reloading in development.
+ * Check if Firebase configuration is available
+ * During build time (SSR), environment variables may not be set
  */
-let app: FirebaseApp;
-
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApps()[0];
-}
+const isFirebaseConfigured = !!(
+  firebaseConfig.apiKey &&
+  firebaseConfig.databaseURL &&
+  firebaseConfig.projectId
+);
 
 /**
- * Get Realtime Database instance
+ * Initialize Firebase App
  * 
- * This is what we'll use to read/write highscores.
- * All operations happen in real-time - when data changes,
- * all connected clients receive updates automatically.
+ * Only initializes if config is available (runtime).
+ * During build time, this is skipped to prevent errors.
  */
-export const database = getDatabase(app);
+let app: FirebaseApp | undefined;
+let database: Database | undefined;
+
+if (isFirebaseConfigured) {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApps()[0];
+  }
+
+  /**
+   * Get Realtime Database instance
+   * 
+   * This is what we'll use to read/write highscores.
+   * All operations happen in real-time - when data changes,
+   * all connected clients receive updates automatically.
+   */
+  database = getDatabase(app);
+}
+
+export { database };
 
 /**
  * Export the app instance in case we need it later

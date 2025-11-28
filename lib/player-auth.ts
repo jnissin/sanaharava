@@ -98,6 +98,10 @@ export async function isNameAvailable(name: string): Promise<boolean> {
     return false;
   }
 
+  if (!database) {
+    throw new Error('Firebase not initialized');
+  }
+
   // Query Firebase for players with this name
   const playersRef = ref(database, 'players');
   const nameQuery = query(playersRef, orderByChild('nameLower'), equalTo(normalizedName));
@@ -130,6 +134,10 @@ export async function registerPlayer(name: string): Promise<PlayerData | null> {
   
   // Generate secure hash with salt
   const { hash: tokenHash, salt } = await secureHash(token);
+
+  if (!database) {
+    throw new Error('Firebase not initialized');
+  }
 
   // Save to Firebase (only hash and salt, never the token!)
   const playerRef = ref(database, `players/${playerId}`);
@@ -166,6 +174,10 @@ export async function registerPlayer(name: string): Promise<PlayerData | null> {
  * Returns player data if valid, null otherwise
  */
 export async function loginPlayer(token: string): Promise<PlayerData | null> {
+  if (!database) {
+    throw new Error('Firebase not initialized');
+  }
+
   // Query all players to find matching token
   const playersRef = ref(database, 'players');
   const snapshot = await get(playersRef);
