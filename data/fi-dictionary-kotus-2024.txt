@@ -83593,7 +83593,6 @@ taempi
 taeta
 taffelipiano
 tafti
-tag
 tagata
 tagi
 tagine
@@ -89119,7 +89118,6 @@ tsarismi
 tsaristinen
 tsasouna
 tsatsiki
-tse
 tsekata
 tšekin kieli
 tsekkaus
