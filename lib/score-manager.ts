@@ -71,6 +71,12 @@ export async function submitScore(
     return;
   }
 
+  // If no existing score and no words found, don't create an entry yet
+  // (player hasn't actually started playing)
+  if (!currentScore && foundWords.length === 0) {
+    return;
+  }
+
   const percentage = calculatePercentage(foundWords, gridSize);
   
   // Check if this is a completion (100%)

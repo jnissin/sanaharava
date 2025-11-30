@@ -143,7 +143,11 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
   // Submit score to Firebase when words change
   useEffect(() => {
     const submitPlayerScore = async () => {
-      if (firebaseAvailable && player && gameId && grid.length > 0 && foundWords.length > 0) {
+      // Submit score whenever foundWords changes (including deletions)
+      // The score-manager handles:
+      // - Not creating a new entry if no words found yet (hasn't started)
+      // - Not updating if game is already completed (100% reached)
+      if (firebaseAvailable && player && gameId && grid.length > 0) {
         const gridSize = rowCount * columnCount;
         try {
           await submitScore(gameId, player, foundWords, gridSize);
