@@ -138,7 +138,7 @@
 }
 
 /* Login button - secondary style, pink outline */
-.arcade-theme .bg-blue-600 {
+.arcade-theme .header-button {
   background-color: transparent !important;
   border: 2px solid #ff1493 !important;
   border-radius: 0 !important;
@@ -150,14 +150,14 @@
   letter-spacing: 0.05em;
 }
 
-.arcade-theme .bg-blue-600:hover {
+.arcade-theme .header-button:hover {
   background-color: #ff1493 !important;
   color: #0a0a0a !important;
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 #000 !important;
 }
 
-.arcade-theme .bg-blue-600:active {
+.arcade-theme .header-button:active {
   transform: translate(2px, 2px);
   box-shadow: 0 0 0 #000 !important;
 }
