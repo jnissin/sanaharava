@@ -12,19 +12,6 @@ body {
   background: rgb(var(--background-rgb));
 }
 
-/* Keyframes and animations */
-@keyframes draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.animate-draw {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: draw 1s ease forwards;
-}
-
 /* Game components */
 .game-outer-container {
   @apply min-h-screen bg-gray-900 p-4 pb-8 flex flex-col items-center;
@@ -147,6 +134,12 @@ body {
     disabled:cursor-not-allowed transition-colors;
 }
 
+/* Unified button style for header actions */
+.header-button {
+  @apply flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg 
+    hover:bg-blue-700 transition-colors;
+}
+
 .error-message {
   @apply flex items-center gap-2 text-red-400 text-sm mt-2;
 }
@@ -160,17 +153,12 @@ body {
 }
 
 .word-tag {
-  @apply px-3 py-1 rounded-md text-sm bg-green-600 text-white;
+  @apply px-3 py-1 rounded-md text-sm bg-green-600 text-white cursor-pointer;
   transition: background-color 0.2s;
 }
 
 .word-tag:hover {
-  background-color: #c62828;
-}
-
-.how-to-play {
-  @apply border-t border-gray-700 pt-4 mt-4 
-    bg-gray-700/20 rounded-lg p-4;
+  @apply bg-red-500;
 }
 
 .instructions-list {
@@ -208,7 +196,9 @@ body {
 
 /* Game title styling */
 .game-title {
-  @apply text-4xl font-bold text-center text-white mb-8;
+  @apply text-4xl text-center text-white mb-8;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .congratulations-message {
