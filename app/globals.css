@@ -183,15 +183,14 @@ body {
   @apply text-white text-center p-4;
 }
 
-/* Hidden easter egg hint - visible when highlighted */
 .easter-egg-hint,
 .easter-egg-hint::before {
-  color: transparent !important;
+  color: #1f2937 !important;
 }
 
 .easter-egg-hint::selection {
   background: rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Game title styling */

@@ -43,12 +43,7 @@ const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
             <li>Poista kirjain tai sana napauttamalla sitä uudelleen.</li>
             <li>Peli on ratkennut, kun saat kaikki kirjaimet yhdistettyä sanoiksi.</li>
             <li>Voit poistaa löydetyn sanan klikkaamalla sitä.</li>
-            {/* Hidden easter egg hint - visible only when highlighted or inspected */}
-            <li 
-              className="easter-egg-hint"
-              style={{ color: 'transparent' }}
-              aria-hidden="true"
-            >
+            <li className="easter-egg-hint" aria-hidden="true">
               sanaharava × 7
             </li>
           </ul>
