@@ -364,8 +364,6 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
           <polyline
             points={points.map(p => `${p.x},${p.y}`).join(' ')}
             fill="none"
-            stroke="rgba(255, 255, 255, 0.5)"
-            strokeWidth="3"
           />
         </svg>
       );
@@ -375,7 +373,7 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
   };
   
   const renderCurrentPath = () => {
-    if (currentPath.length < 2) return null;
+    if (currentPath.length === 0) return null;
   
     // Match from .game-cell CSS
     const cellWidth = 50;
@@ -385,11 +383,35 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
     const points = currentPath.map(([row, col]) => ({
       x: (col * (cellWidth + gap)) + (cellWidth / 2),
       y: (row * (cellHeight + gap)) + (cellHeight / 2)
-    }));  
+    }));
+
+    // Single letter - draw a filled circle (same size as path width)
+    if (currentPath.length === 1) {
+      return (
+        <svg
+          className="word-path-overlay current-path-line"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none'
+          }}
+        >
+          <circle
+            cx={points[0].x}
+            cy={points[0].y}
+            r="14"
+          />
+        </svg>
+      );
+    }
     
+    // Multiple letters - draw a polyline
     return (
       <svg
-        className="word-path-overlay"
+        className="word-path-overlay current-path-line"
         style={{
           position: 'absolute',
           top: 0,
@@ -402,8 +424,6 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
         <polyline
           points={points.map(p => `${p.x},${p.y}`).join(' ')}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.8)"
-          strokeWidth="3"
         />
       </svg>
     );

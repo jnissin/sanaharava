@@ -1,0 +1,690 @@
+/* 8-Bit Retro Arcade Theme Easter Egg - Activated for game ID 2025-11-30 */
+/* Arcade Cabinet with CRT Screen concept */
+/* Colors: Pink (structure), Gold (selection), Teal (found), White (available) */
+
+/* === ANIMATIONS === */
+
+@keyframes scanline-move {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(4px); }
+}
+
+@keyframes screen-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.98; }
+}
+
+@keyframes subtle-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 20, 147, 0.3), 8px 8px 0 #000; }
+  50% { box-shadow: 0 0 30px rgba(255, 20, 147, 0.4), 8px 8px 0 #000; }
+}
+
+/* === BASE THEME === */
+
+.arcade-theme {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Outer container - subtle gradient for atmosphere */
+.arcade-theme.game-outer-container {
+  background: radial-gradient(ellipse at center, #151515 0%, #0a0a0a 70%, #050505 100%);
+  min-height: 100vh;
+  justify-content: flex-start;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+/* === MARQUEE / HEADER === */
+
+/* Title - pink, understated, marquee style */
+.arcade-theme .game-title {
+  color: #ff1493;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 #000, 0 0 10px rgba(255, 20, 147, 0.5);
+  border: none;
+  padding: 0;
+  background: transparent;
+  display: inline-block;
+  box-shadow: none;
+  margin-bottom: 1.5rem;
+}
+
+/* === UNIFIED HEADER AREA === */
+
+/* Date selector - minimal, integrated */
+.arcade-theme .date-selector {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0.5rem 0;
+  box-shadow: none;
+  margin-bottom: 0.75rem;
+}
+
+.arcade-theme .date-nav-button {
+  border: 2px solid #ff1493;
+  border-radius: 0;
+  color: #ff1493;
+  background: transparent;
+  font-weight: bold;
+  padding: 0.4rem 0.6rem;
+  box-shadow: 2px 2px 0 #000;
+  transition: all 0.1s;
+}
+
+.arcade-theme .date-nav-button:hover:not(:disabled) {
+  background: #ff1493;
+  color: #0a0a0a;
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+.arcade-theme .date-nav-button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #000;
+}
+
+.arcade-theme .date-nav-button:disabled {
+  border-color: #444;
+  color: #555;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.arcade-theme .date-display {
+  color: #ff1493;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+/* === BUTTONS === */
+
+.arcade-theme button {
+  font-family: 'Courier New', Courier, monospace;
+  border-radius: 0;
+}
+
+/* Primary action buttons (Connect/Yhdistä) - Gold to match selection */
+.arcade-theme .connect-button {
+  background: #ffd700;
+  color: #0a0a0a;
+  border: 3px solid #ffd700;
+  border-radius: 0;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 3px 3px 0 #000;
+  transition: all 0.1s;
+}
+
+.arcade-theme .connect-button:hover:not(:disabled) {
+  background: #ffed4a;
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+.arcade-theme .connect-button:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 #000;
+}
+
+.arcade-theme .connect-button:disabled {
+  background: #333;
+  color: #555;
+  border-color: #333;
+  box-shadow: 3px 3px 0 #000;
+}
+
+/* Login button - secondary style, pink outline */
+.arcade-theme .bg-blue-600 {
+  background-color: transparent !important;
+  border: 2px solid #ff1493 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #000 !important;
+  color: #ff1493 !important;
+  transition: all 0.1s;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.arcade-theme .bg-blue-600:hover {
+  background-color: #ff1493 !important;
+  color: #0a0a0a !important;
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #000 !important;
+}
+
+.arcade-theme .bg-blue-600:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #000 !important;
+}
+
+/* === CRT SCREEN (GAME CARD) - THE FOCAL POINT === */
+
+.arcade-theme .game-card {
+  background: #0d0d0d;
+  border: 4px solid #ff1493;
+  border-radius: 6px;
+  box-shadow: 
+    0 0 20px rgba(255, 20, 147, 0.3),
+    8px 8px 0 #000;
+  position: relative;
+  overflow: hidden;
+  animation: screen-flicker 4s infinite, subtle-glow 3s infinite;
+}
+
+/* CRT scanlines */
+.arcade-theme .game-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+  animation: scanline-move 0.5s infinite linear;
+}
+
+/* Screen vignette */
+.arcade-theme .game-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+  pointer-events: none;
+  z-index: 9;
+  border-radius: 4px;
+}
+
+/* Glass glare - subtle */
+.arcade-theme .game-grid-container::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 60%;
+  height: 25%;
+  background: radial-gradient(
+    ellipse at top left,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* === GAME GRID === */
+
+.arcade-theme .game-grid {
+  filter: brightness(1.05);
+}
+
+/* === GAME CELLS === */
+
+/* Available letters - floating, no boxes */
+.arcade-theme .game-cell {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: #ffffff;
+  font-weight: bold;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.25rem;
+  transition: all 0.05s;
+  box-shadow: none;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.arcade-theme .game-cell:hover {
+  color: #ff1493;
+  text-shadow: 0 0 8px rgba(255, 20, 147, 0.6), 1px 1px 2px #000;
+}
+
+/* Selected letters (current path) - text only, path SVG handles visual */
+.arcade-theme .game-cell.current-path {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.arcade-theme .game-cell.current-path::before {
+  display: none;
+}
+
+.arcade-theme .game-cell.current-path span {
+  color: #ffffff;
+  font-weight: 900;
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* Found word cells - floating with teal color */
+.arcade-theme .game-cell.found-word {
+  background: transparent;
+  border: none;
+  color: #5eead4;
+  box-shadow: none;
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* === PATH LINES === */
+
+.arcade-theme .word-path-overlay polyline {
+  filter: none;
+}
+
+/* Teal paths for found words - visible but letters stay readable */
+.arcade-theme .word-path-overlay.found-word-path polyline {
+  stroke: #14b8a6;
+  stroke-width: 28px;
+  opacity: 0.6;
+}
+
+/* Gold paths for current selection - matches found word style */
+.arcade-theme .word-path-overlay.current-path-line polyline {
+  stroke: #ffd700;
+  stroke-width: 28px;
+  opacity: 0.7;
+}
+
+.arcade-theme .word-path-overlay.current-path-line circle {
+  fill: #ffd700;
+  opacity: 0.7;
+}
+
+/* === GAME CONTROLS === */
+
+.arcade-theme .current-word {
+  color: #ffd700;
+  font-weight: bold;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* === ERROR MESSAGE === */
+
+.arcade-theme .error-message {
+  color: #ff6b6b;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* === SECTION TITLES === */
+
+.arcade-theme .section-title {
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: bold;
+  border-bottom: 2px solid #333;
+  padding-bottom: 0.25rem;
+}
+
+/* === FOUND WORDS TAGS - Teal to match found state === */
+
+.arcade-theme .word-tag {
+  background: #14b8a6;
+  color: #0a0a0a;
+  border: 3px solid #14b8a6;
+  border-radius: 0;
+  font-weight: bold;
+  box-shadow: 2px 2px 0 #000;
+  font-family: 'Courier New', Courier, monospace;
+  text-transform: uppercase;
+  transition: all 0.1s;
+}
+
+.arcade-theme .word-tag:hover {
+  background: #ff1493;
+  border-color: #ff1493;
+  color: #fff;
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+/* === CONGRATULATIONS MESSAGE === */
+
+.arcade-theme .congratulations-message {
+  background: #14b8a6;
+  color: #0a0a0a;
+  border: 4px solid #fff;
+  border-radius: 0;
+  box-shadow: 6px 6px 0 #000;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* === BOTTOM PANELS - Darker, recede === */
+
+.arcade-theme .highscore-panel {
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 #000;
+}
+
+.arcade-theme .how-to-play {
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 #000;
+}
+
+.arcade-theme .highscore-header {
+  background: #0a0a0a;
+  color: #ff1493;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 2px solid #333;
+  transition: background 0.1s;
+}
+
+.arcade-theme .highscore-header:hover {
+  background: #151515;
+}
+
+.arcade-theme .highscore-entry {
+  background: #0a0a0a;
+  border: 2px solid #222;
+  border-radius: 0;
+  margin-bottom: 0.25rem;
+}
+
+.arcade-theme .highscore-entry:hover {
+  background: #151515;
+  border-color: #ff1493;
+}
+
+.arcade-theme .highscore-entry.is-current-player {
+  background: #1a0a15;
+  border: 2px solid #ff1493;
+}
+
+.arcade-theme .highscore-rank {
+  color: #ff1493;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.arcade-theme .highscore-name {
+  color: #e0e0e0;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.arcade-theme .highscore-percentage {
+  color: #14b8a6;
+  font-weight: bold;
+}
+
+.arcade-theme .highscore-time {
+  color: #555;
+}
+
+/* === INSTRUCTIONS === */
+
+.arcade-theme .instructions-list {
+  color: #999;
+}
+
+.arcade-theme .instructions-list li::before {
+  color: #ff1493;
+  font-weight: bold;
+}
+
+/* === LOADING STATE === */
+
+.arcade-theme .loading {
+  color: #ff1493;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+/* === PLAYER INFO (Logged in state) === */
+
+.arcade-theme .bg-gray-100 {
+  background: #1a1a1a !important;
+  border: 2px solid #ff1493 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+
+.arcade-theme .text-gray-700 {
+  color: #ff1493 !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.arcade-theme .bg-gray-100 button {
+  background: transparent !important;
+  border: 1px solid #ff1493 !important;
+  border-radius: 0 !important;
+  padding: 0.25rem !important;
+  transition: all 0.1s !important;
+}
+
+.arcade-theme .bg-gray-100 button:hover,
+.arcade-theme .hover\:bg-gray-200:hover {
+  background: #ff1493 !important;
+  border-color: #ff1493 !important;
+}
+
+.arcade-theme .text-gray-600 {
+  color: #ff1493 !important;
+}
+
+.arcade-theme .bg-gray-100 button:hover .text-gray-600 {
+  color: #0a0a0a !important;
+}
+
+.arcade-theme .text-green-600 {
+  color: #14b8a6 !important;
+}
+
+.arcade-theme .bg-gray-800 {
+  background: #1a1a1a !important;
+  border: 2px solid #ff1493 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+
+.arcade-theme .text-gray-300 {
+  color: #ff1493 !important;
+}
+
+/* === AUTH MODAL (Login/Register) === */
+
+/* Modal overlay */
+.arcade-theme .bg-black.bg-opacity-75 {
+  background: rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Modal container */
+.arcade-theme .bg-gray-800.border.border-gray-700 {
+  background: #0a0a0a !important;
+  border: 4px solid #ff1493 !important;
+  border-radius: 0 !important;
+  box-shadow: 8px 8px 0 #000 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+/* Modal headings */
+.arcade-theme .text-xl.font-bold.text-gray-100 {
+  color: #ff1493 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+/* Close button */
+.arcade-theme .text-gray-400.hover\:text-gray-200 {
+  color: #ff1493 !important;
+}
+
+.arcade-theme .text-gray-400.hover\:text-gray-200:hover {
+  color: #fff !important;
+}
+
+/* Tab buttons (Register/Login toggle) */
+.arcade-theme .bg-gray-700.text-gray-300 {
+  background: transparent !important;
+  border: 2px solid #333 !important;
+  border-radius: 0 !important;
+  color: #888 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+
+.arcade-theme .bg-gray-700.text-gray-300:hover {
+  background: #1a1a1a !important;
+  border-color: #ff1493 !important;
+  color: #ff1493 !important;
+}
+
+/* Active tab */
+.arcade-theme .flex.gap-2 .bg-blue-600 {
+  background: #ff1493 !important;
+  border: 2px solid #ff1493 !important;
+  border-radius: 0 !important;
+  color: #0a0a0a !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+
+/* Form labels */
+.arcade-theme .text-sm.font-medium.text-gray-300 {
+  color: #888 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 0.75rem !important;
+}
+
+/* Input fields */
+.arcade-theme .bg-gray-900.border.border-gray-600 {
+  background: #1a1a1a !important;
+  border: 3px solid #333 !important;
+  border-radius: 0 !important;
+  color: #e0e0e0 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  transition: all 0.1s !important;
+}
+
+.arcade-theme .bg-gray-900.border.border-gray-600:focus {
+  border-color: #ff1493 !important;
+  outline: none !important;
+  box-shadow: 0 0 10px rgba(255, 20, 147, 0.3) !important;
+}
+
+.arcade-theme .bg-gray-900.border.border-gray-600::placeholder {
+  color: #555 !important;
+}
+
+/* Submit button in modal */
+.arcade-theme .w-full.bg-blue-600.text-white {
+  background: #ffd700 !important;
+  border: 3px solid #ffd700 !important;
+  border-radius: 0 !important;
+  color: #0a0a0a !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-weight: bold !important;
+  box-shadow: 3px 3px 0 #000 !important;
+  transition: all 0.1s !important;
+}
+
+.arcade-theme .w-full.bg-blue-600.text-white:hover {
+  background: #ffed4a !important;
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0 #000 !important;
+}
+
+.arcade-theme .w-full.bg-blue-600.text-white:disabled {
+  background: #333 !important;
+  border-color: #333 !important;
+  color: #555 !important;
+  box-shadow: 3px 3px 0 #000 !important;
+  transform: none !important;
+}
+
+/* Error message in modal */
+.arcade-theme .bg-red-900\/50 {
+  background: #2a0a0a !important;
+  border: 2px solid #ff6b6b !important;
+  border-radius: 0 !important;
+  color: #ff6b6b !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  text-transform: uppercase !important;
+}
+
+/* Info text */
+.arcade-theme .text-xs.text-gray-400 {
+  color: #555 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  text-transform: none !important;
+}
+
+/* Token display box */
+.arcade-theme .bg-gray-900.p-4.rounded-lg.border-2.border-gray-600 {
+  background: #1a1a1a !important;
+  border: 3px solid #14b8a6 !important;
+  border-radius: 0 !important;
+}
+
+.arcade-theme .bg-gray-900.p-4.rounded-lg.border-2.border-gray-600 code {
+  color: #14b8a6 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+/* Token copy button */
+.arcade-theme .hover\:bg-gray-700 {
+  border: 1px solid #14b8a6 !important;
+  border-radius: 0 !important;
+}
+
+.arcade-theme .hover\:bg-gray-700:hover {
+  background: #14b8a6 !important;
+}
+
+/* Token copy button icon color - scoped to token area */
+.arcade-theme .bg-gray-900.p-4 .text-gray-400 {
+  color: #14b8a6 !important;
+}
+
+.arcade-theme .hover\:bg-gray-700:hover .text-gray-400 {
+  color: #0a0a0a !important;
+}
+
+.arcade-theme .text-green-500 {
+  color: #14b8a6 !important;
+}
