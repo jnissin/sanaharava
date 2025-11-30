@@ -7,6 +7,11 @@ import seedrandom from 'seedrandom';
  * columns: number of columds in grid
  * seed: optional seed for reproducible layouts
  */
+export interface WordPath {
+    word: string;
+    path: number[]; // Array of cell indices
+}
+
 export class GameGenerator {
     private characterCount: number; //Total character count
     private validGenerator: boolean = true; //Is generator in valid state to create game
@@ -16,6 +21,7 @@ export class GameGenerator {
     private columns: number; //number of columns
     private rng: () => number; //seeded random number generator
     private seed: string | undefined; //seed used for RNG
+    private wordPaths: WordPath[] = []; //paths used for each word
 
     constructor(words: Set<string>, rows: number, columns: number, seed?: string) {
         if(!Number.isInteger(rows)) {
@@ -65,6 +71,31 @@ export class GameGenerator {
      */
     public getSeed(): string | undefined {
         return this.seed;
+    }
+
+    /**
+     * Get the paths used for each word (available after generate())
+     * @returns array of word paths with cell indices
+     */
+    public getWordPaths(): WordPath[] {
+        return this.wordPaths;
+    }
+
+    /**
+     * Convert cell index to [row, col] coordinates
+     */
+    public cellToCoords(cell: number): [number, number] {
+        return [Math.floor(cell / this.columns), cell % this.columns];
+    }
+
+    /**
+     * Get word paths as [row, col] coordinates (more readable)
+     */
+    public getWordPathsAsCoords(): { word: string; path: [number, number][] }[] {
+        return this.wordPaths.map(wp => ({
+            word: wp.word,
+            path: wp.path.map(cell => this.cellToCoords(cell))
+        }));
     }
 
     /**
@@ -126,9 +157,13 @@ export class GameGenerator {
     private fillGrid(): boolean  {
         let filledCounter: number = 0;
         let success = true;
+        this.wordPaths = []; // Reset paths
+        
         //Iterate over each word
         this.words.forEach((word: string) => {
             let previousCell: number | null = null; //Track previous character cell
+            const currentPath: number[] = []; //Track path for this word
+            
             //Iterate over each character
             Array.from(word).forEach((character: string) => {
                 let filledCell: number | null = this.tryInsertCharacter(character, filledCounter, previousCell);
@@ -137,9 +172,15 @@ export class GameGenerator {
                     return; //failed to add character
                 }
 
+                currentPath.push(filledCell);
                 previousCell = filledCell;
                 filledCounter++;
             });
+            
+            if(success) {
+                this.wordPaths.push({ word, path: currentPath });
+            }
+            
             if(!success)
                 return;
         });
