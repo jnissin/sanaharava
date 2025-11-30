@@ -27,7 +27,7 @@ body {
 
 /* Game components */
 .game-outer-container {
-  @apply min-h-screen bg-gray-900 p-4 flex flex-col items-center justify-center;
+  @apply min-h-screen bg-gray-900 p-4 pb-8 flex flex-col items-center;
 }
 
 .game-container {

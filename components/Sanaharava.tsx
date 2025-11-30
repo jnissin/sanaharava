@@ -48,6 +48,7 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
     const [highscorePanelOpen, setHighscorePanelOpen] = useState(false);
     const [instructionsPanelOpen, setInstructionsPanelOpen] = useState(false);
     const [firebaseAvailable, setFirebaseAvailable] = useState<boolean>(true);
+    const [isArcadeTheme, setIsArcadeTheme] = useState(false);
     const isInitialMount = useRef(true);
     const hasLoadedState = useRef(false);
 
@@ -76,6 +77,15 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
       
       checkFirebase();
     }, []);
+
+    // Detect arcade theme easter egg
+    useEffect(() => {
+      if (gameId === '2025-11-30') {
+        setIsArcadeTheme(true);
+      } else {
+        setIsArcadeTheme(false);
+      }
+    }, [gameId]);
 
     // Load player from localStorage on mount
     useEffect(() => {
@@ -400,7 +410,7 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
   };
 
   return (
-    <div className="game-outer-container">
+    <div className={`game-outer-container ${isArcadeTheme ? 'arcade-theme' : ''}`}>
       <GameTitle />
       
       {/* Player Auth Modal */}
