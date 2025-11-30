@@ -1,8 +1,11 @@
+import seedrandom from 'seedrandom';
+
 /**
  * Creates new grid layout from given words
  * words: Solution words for game
  * rows: number of rows in grid
  * columns: number of columds in grid
+ * seed: optional seed for reproducible layouts
  */
 export class GameGenerator {
     private characterCount: number; //Total character count
@@ -11,8 +14,10 @@ export class GameGenerator {
     private words: string[]; //words for solution
     private rows: number; //number of rows
     private columns: number; //number of columns
+    private rng: () => number; //seeded random number generator
+    private seed: string | undefined; //seed used for RNG
 
-    constructor(words: Set<string>, rows: number, columns: number) {
+    constructor(words: Set<string>, rows: number, columns: number, seed?: string) {
         if(!Number.isInteger(rows)) {
             this.validGenerator = false;
             console.error("Row count must be integer");
@@ -48,6 +53,18 @@ export class GameGenerator {
         this.rows = rows;
         this.columns = columns;
         this.grid = new Array<string>(this.characterCount);
+        
+        // Initialize seeded RNG (use provided seed or generate random one)
+        this.seed = seed;
+        this.rng = seed ? seedrandom(seed) : seedrandom();
+    }
+
+    /**
+     * Get the seed used for this generator
+     * @returns the seed string, or undefined if randomly generated
+     */
+    public getSeed(): string | undefined {
+        return this.seed;
     }
 
     /**
@@ -60,6 +77,9 @@ export class GameGenerator {
             return [];
         }
         else {
+            // Reset RNG to seed for reproducibility across multiple generate() calls
+            this.rng = this.seed ? seedrandom(this.seed) : seedrandom();
+            
             this.grid = new Array<string>(this.characterCount);
             while(!this.fillGrid()) {
                 this.grid = new Array<string>(this.characterCount);
@@ -92,11 +112,11 @@ export class GameGenerator {
     }
 
     /**
-     * Random integer generator
+     * Random integer generator (uses seeded RNG for reproducibility)
      * @returns integer between 0 and character count
      */
     private getRandomInt(): number  {
-        return Math.floor(Math.random() * this.characterCount);
+        return Math.floor(this.rng() * this.characterCount);
     }
 
     /**
