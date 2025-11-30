@@ -195,6 +195,17 @@ body {
   @apply text-white text-center p-4;
 }
 
+/* Hidden easter egg hint - visible when highlighted */
+.easter-egg-hint,
+.easter-egg-hint::before {
+  color: transparent !important;
+}
+
+.easter-egg-hint::selection {
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* Game title styling */
 .game-title {
   @apply text-4xl font-bold text-center text-white mb-8;

@@ -10,6 +10,7 @@ import HighscorePanel from './HighscorePanel';
 import InstructionsPanel from './InstructionsPanel';
 import { getLocalPlayer, isPlayerRegistered } from '@/lib/player-auth';
 import { submitScore } from '@/lib/score-manager';
+import { useArcadeActivation } from '@/lib/arcade-activation';
 import type { PlayerData } from '@/lib/player-auth';
 
 interface WordPath {
@@ -20,9 +21,20 @@ interface WordPaths {
   [key: string]: WordPath;
 }
 
-const GameTitle = () => {
+interface GameTitleProps {
+  onTap: () => void;
+}
+
+const GameTitle = ({ onTap }: GameTitleProps) => {
   return (
-    <h1 className="game-title">
+    <h1 
+      className="game-title"
+      onClick={onTap}
+      style={{ 
+        cursor: 'pointer',
+        userSelect: 'none',
+      }}
+    >
       Sanaharava
     </h1>
   );
@@ -31,6 +43,9 @@ const GameTitle = () => {
 const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
     const router = useRouter();
     const gameIdFromDate = initialDate || new Date().toISOString().split("T")[0];
+    
+    // Arcade theme easter egg activation
+    const { isArcadeTheme, handleTitleTap, flashActive } = useArcadeActivation();
     
     const [grid, setGrid] = useState<string[][]>([]);
     const [currentPath, setCurrentPath] = useState<number[][]>([]);
@@ -48,7 +63,6 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
     const [highscorePanelOpen, setHighscorePanelOpen] = useState(false);
     const [instructionsPanelOpen, setInstructionsPanelOpen] = useState(false);
     const [firebaseAvailable, setFirebaseAvailable] = useState<boolean>(true);
-    const [isArcadeTheme, setIsArcadeTheme] = useState(false);
     const isInitialMount = useRef(true);
     const hasLoadedState = useRef(false);
 
@@ -77,15 +91,6 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
       
       checkFirebase();
     }, []);
-
-    // Detect arcade theme easter egg
-    useEffect(() => {
-      if (gameId === '2025-11-30') {
-        setIsArcadeTheme(true);
-      } else {
-        setIsArcadeTheme(false);
-      }
-    }, [gameId]);
 
     // Load player from localStorage on mount
     useEffect(() => {
@@ -429,9 +434,19 @@ const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
     );
   };
 
+  // Flash overlay style
+  const flashStyle = flashActive ? {
+    position: 'fixed' as const,
+    inset: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    pointerEvents: 'none' as const,
+    zIndex: 9999,
+  } : undefined;
+
   return (
     <div className={`game-outer-container ${isArcadeTheme ? 'arcade-theme' : ''}`}>
-      <GameTitle />
+      {flashActive && <div style={flashStyle} />}
+      <GameTitle onTap={handleTitleTap} />
       
       {/* Player Auth Modal */}
       {showAuthModal && (
