@@ -474,7 +474,7 @@ if (isFirebaseConfigured) {
           ".read": true,
           "$playerId": {
             ".write": true,
-            ".validate": "newData.hasChildren(['playerId', 'playerName', 'percentage', 'startTime', 'lastUpdated', 'foundWords']) && newData.child('percentage').isNumber() && newData.child('percentage').val() >= 0 && newData.child('percentage').val() <= 100"
+            ".validate": "newData.hasChildren(['playerId', 'playerName', 'percentage', 'startTime', 'lastUpdated']) && newData.child('percentage').isNumber() && newData.child('percentage').val() >= 0 && newData.child('percentage').val() <= 100"
           }
         }
       }
