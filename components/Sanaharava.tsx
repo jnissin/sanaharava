@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { AlertCircle, User } from 'lucide-react';
 import DateSelector from './DateSelector';
 import PlayerAuth from './PlayerAuth';
@@ -27,7 +28,10 @@ const GameTitle = () => {
   );
 };
 
-const Sanaharava = () => {
+const Sanaharava = ({ initialDate }: { initialDate?: string }) => {
+    const router = useRouter();
+    const gameIdFromDate = initialDate || new Date().toISOString().split("T")[0];
+    
     const [grid, setGrid] = useState<string[][]>([]);
     const [currentPath, setCurrentPath] = useState<number[][]>([]);
     const [wordPaths, setWordPaths] = useState<WordPaths>({});
@@ -37,7 +41,7 @@ const Sanaharava = () => {
     const [isComplete, setIsComplete] = useState(false);
     const [rowCount, setRowCount] = useState<number>(6);
     const [columnCount, setColumnCount] = useState<number>(5);
-    const [gameId, setGameId] = useState<string | null>(new Date().toISOString().split("T")[0]);
+    const [gameId, setGameId] = useState<string | null>(gameIdFromDate);
     const [availableDates, setAvailableDates] = useState<string[]>([]);
     const [player, setPlayer] = useState<PlayerData | null>(null);
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -173,6 +177,9 @@ const Sanaharava = () => {
   }, [gameId, grid]);
 
   const handleDateChange = (newDate: string) => {
+    // Navigate to the new date URL
+    router.push(`/${newDate}`);
+    
     setGameId(newDate);
     setFoundWords([]);
     setWordPaths({});
