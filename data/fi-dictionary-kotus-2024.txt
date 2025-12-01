@@ -4,7 +4,6 @@
 4H-kerholainen
 4H-neuvoja
 4H-toiminta
-aah
 aakkonen
 aakkosellinen
 aakkosellisesti
@@ -4950,7 +4949,6 @@ bitumihuopa
 bitumilakka
 bitumisora
 bitumoida
-blaa
 blandata
 blandaus
 blandinki
@@ -24635,7 +24633,6 @@ karviaispistiäinen
 karvoa
 karvoittua
 karvoitus
-kas
 kasa
 kasaantua
 kasaantuma
